@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="ko" data-theme="wongoji">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F5F0">
+<title>편입 캘린더 데스크톱 시안</title>
+<script>
+/* 첫 화면 전에 테마 지정(깜빡임 방지, DESIGN 1.2) */
+(function(){try{var t=localStorage.getItem('tcal.theme');if(t==='wongoji'||t==='planner')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<style>
+/* ===== 테마 토큰 (DESIGN.md 3장과 동일) ===== */
+[data-theme="wongoji"]{--bg:#F7F5F0;--surface:#FFFFFF;--surface-2:#EFECE4;--text:#1C1B19;--muted:#5F5B53;--line:#DDD8CC;--accent:#2B59C3;--accent-ink:#FFFFFF;--accent-soft:#E3EAF8;--sun:#C62828;--sat:#1F57C3;--danger:#C62828;--danger-soft:#FBE4E2;--warn:#A14A00;--warn-soft:#FBEBD9;--today:#2B59C3;
+ --r-sm:4px;--r:10px;--r-lg:16px;--chip-r:4px;--chip-w:600;--shadow:0 1px 2px rgba(28,27,25,.06),0 0 0 1px var(--line);--pop-shadow:-12px 0 32px rgba(28,27,25,.14);
+ --font:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo",sans-serif;--font-display:"IBM Plex Sans KR",-apple-system,sans-serif;--font-num:"IBM Plex Mono",ui-monospace,monospace;--font-num-sm:"IBM Plex Mono",ui-monospace,monospace;--display-w:700;--num-w:600;--cal-gap:0px;--cell-r:0px}
+[data-theme="planner"]{--bg:#F3F0FA;--surface:#FFFFFF;--surface-2:#E9E3F7;--text:#2A2340;--muted:#625A7A;--line:#DCD4EE;--accent:#C93F4A;--accent-ink:#FFFFFF;--accent-soft:#FBE3E4;--sun:#C93F4A;--sat:#4F46E5;--danger:#C0262D;--danger-soft:#FCE1E2;--warn:#9A4A00;--warn-soft:#FDEBD6;--today:#C93F4A;
+ --r-sm:10px;--r:18px;--r-lg:26px;--chip-r:999px;--chip-w:700;--shadow:0 2px 0 var(--line),0 0 0 1px var(--line);--pop-shadow:-14px 0 36px rgba(42,35,64,.18);
+ --font:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo",sans-serif;--font-display:"Gowun Dodum","Pretendard Variable",sans-serif;--font-num:"Gowun Dodum","Pretendard Variable",sans-serif;--font-num-sm:"Pretendard Variable",Pretendard,sans-serif;--display-w:400;--num-w:400;--cal-gap:4px;--cell-r:12px;font-synthesis:none}
+
+/* ===== 기본 ===== */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:15px/1.5 var(--font);word-break:keep-all;transition:background-color .15s,color .15s}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{margin:0}
+.num{font-family:var(--font-num);font-weight:var(--num-w)}
+.num-sm{font-family:var(--font-num-sm);font-variant-numeric:tabular-nums;font-weight:600}
+.muted{color:var(--muted)}
+.sp{flex:1}
+
+/* ===== 전체 틀: 왼쪽 메뉴 + 본문 (화면 전체 폭) ===== */
+.app{display:grid;grid-template-columns:var(--nav-w,232px) minmax(0,1fr);height:100dvh}
+.nav{background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px;padding:16px 12px;overflow-y:auto}
+.brand{display:flex;gap:10px;align-items:center;padding:2px 6px 18px}
+.logo{width:38px;height:38px;flex:none;border-radius:var(--r);background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--font-display);font-weight:var(--display-w);font-size:19px}
+.brand b{display:block;font-family:var(--font-display);font-weight:var(--display-w);font-size:18px;line-height:1.2}
+.brand small{color:var(--muted);font-size:11px;letter-spacing:.02em}
+.ni{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border:0;border-radius:var(--r);background:transparent;color:var(--muted);font-weight:600;font-size:14px;cursor:pointer;text-align:left;width:100%}
+.ni:hover{background:var(--surface-2)}
+.ni[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.ni .cnt{margin-left:auto;font-size:11px;font-weight:700;background:var(--danger-soft);color:var(--danger);padding:2px 8px;border-radius:999px}
+.nav-sep{height:1px;background:var(--line);margin:8px 6px}
+.nav-foot{margin-top:auto;padding:12px 8px 0;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted)}
+.avatar{width:32px;height:32px;flex:none;border-radius:50%;background:var(--surface-2);color:var(--text);display:grid;place-items:center;font-weight:700;font-size:13px}
+@media (max-width:1439px){
+ .app{--nav-w:72px}
+ .brand{justify-content:center;padding:2px 0 18px}.brand .t,.ni .l,.nav-foot .t,.ni .cnt{display:none}
+ .ni{justify-content:center;padding:0}.nav-foot{justify-content:center;padding:12px 0 0}
+}
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;height:100dvh}
+
+/* 앱바 */
+.topbar{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;padding:12px 24px;border-bottom:1px solid var(--line);min-height:64px;flex:none}
+.topbar h1{font-family:var(--font-display);font-weight:var(--display-w);font-size:22px;letter-spacing:-.01em;white-space:nowrap}
+.topbar .sub{font-size:13px;color:var(--muted)}
+.seg{display:inline-flex;gap:2px;padding:3px;border-radius:var(--r);background:var(--surface-2)}
+.seg button{border:0;background:transparent;color:var(--muted);font-weight:600;font-size:13px;min-height:34px;padding:0 12px;border-radius:calc(var(--r) - 3px);cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.icon-btn{width:40px;height:40px;flex:none;border:0;border-radius:var(--r);background:transparent;color:var(--text);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.icon-btn:hover{background:var(--surface-2)}
+.icon-btn:disabled{opacity:.35;cursor:default;background:transparent}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 16px;border:0;border-radius:var(--r);font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn.pri{background:var(--accent);color:var(--accent-ink)}
+.btn.sec{background:var(--surface-2);color:var(--text)}
+.btn.ghost{background:transparent;color:var(--text);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.danger{background:transparent;color:var(--danger);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.block{width:100%;min-height:48px}
+.btn.sm{min-height:36px;padding:0 12px;font-size:13px}
+.mini{border:1px solid var(--line);background:var(--surface);color:var(--text);font-weight:600;font-size:12px;height:30px;padding:0 10px;border-radius:var(--r-sm);cursor:pointer;white-space:nowrap}
+.search{display:flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow);color:var(--muted);min-width:240px}
+.search input{border:0;outline:0;background:transparent;font-size:16px;width:100%}
+
+/* ===== 달력 화면: 달력(가변 폭) + 오른쪽 패널 ===== */
+.calwrap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) var(--panel-w,420px)}
+@media (max-width:1439px){.calwrap{--panel-w:380px}}
+.calwrap.ov{grid-template-columns:minmax(0,1fr)}
+@media (min-width:1920px){.calwrap.ov.m2{grid-template-columns:minmax(0,1fr) var(--panel-w,440px)}.calwrap.ov.m2 .panel{position:static;transform:none;box-shadow:none;width:auto}.calwrap.ov.m2 .scrim{display:none}}
+.calmain{display:flex;flex-direction:column;gap:10px;min-height:0;min-width:0;padding:14px 24px 12px}
+.ddays{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));grid-template-rows:auto;grid-auto-rows:0;row-gap:0;column-gap:10px;overflow:hidden;flex:none}
+.dd{overflow:hidden;display:flex;align-items:center;gap:12px;padding:10px 14px;border:0;border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--shadow);text-align:left;cursor:pointer;min-width:0}
+.dd:first-child{background:var(--accent-soft);box-shadow:none}
+.dd .n{font-family:var(--font-num);font-weight:var(--num-w);font-size:26px;line-height:1;color:var(--accent);min-width:62px;letter-spacing:-.02em}
+.dd .t1{font-weight:700;font-size:15px;display:block}
+.dd .t2{font-size:12.5px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alert{display:flex;align-items:center;gap:8px;padding:8px 14px;border:0;border-radius:var(--r);background:var(--danger-soft);color:var(--danger);font-weight:600;font-size:13px;text-align:left;cursor:pointer;flex:none}
+.months{flex:1;min-height:0;display:grid;gap:20px}
+.months.m1{grid-template-columns:minmax(0,1fr)}
+.months.m2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.months.m4{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:14px 20px}
+@media (min-width:2200px){.months.m4{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}}
+.month{display:flex;flex-direction:column;min-height:0;min-width:0}
+.mhead{display:flex;align-items:baseline;gap:12px;margin:0 2px 6px;flex:none}
+.mhead h3{font-family:var(--font-display);font-weight:var(--display-w);font-size:18px}
+.mhead .s{font-size:12px;color:var(--muted)}
+.dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:var(--cal-gap);flex:none}
+.dow div{font-size:12px;font-weight:600;color:var(--muted);padding:0 8px 4px}
+.dow div:first-child{color:var(--sun)}.dow div:last-child{color:var(--sat)}
+.grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(var(--weeks),minmax(0,1fr));gap:var(--cal-gap);background:var(--surface);border-top:1px solid var(--line);border-left:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+[data-theme="planner"] .grid{background:transparent;border:0;overflow:visible}
+.cell{container-type:inline-size;position:relative;display:flex;flex-direction:column;gap:3px;min-width:0;min-height:0;overflow:hidden;padding:5px 6px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:transparent;text-align:left;cursor:pointer}
+[data-theme="planner"] .cell{border:0;background:var(--surface);border-radius:var(--cell-r)}
+.cell:hover{background:var(--surface-2)}
+.cell.out{cursor:default;background:transparent}
+[data-theme="planner"] .cell.out{background:transparent}
+.cell.sel{box-shadow:inset 0 0 0 2px var(--accent);background:var(--accent-soft)}
+.dl{display:flex;align-items:center;gap:6px;flex:none;min-width:0}
+.cell .d{font-family:var(--font-num-sm);font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;flex:none}
+.cell.sun .d,.cell.hol .d{color:var(--sun)}.cell.sat .d{color:var(--sat)}
+.cell.today .d{background:var(--today);color:var(--accent-ink)}
+.hn{font-size:11px;color:var(--sun);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .wi{position:absolute;top:7px;right:7px;color:var(--danger);display:flex}
+.cell .wi.w2{color:var(--warn)}
+.chip{display:flex;align-items:center;gap:4px;height:21px;flex:none;padding:0 7px;border-radius:var(--chip-r);font-size:12px;font-weight:var(--chip-w);line-height:1;white-space:nowrap;overflow:hidden;min-width:0}
+.chip .s{font-size:9px;flex:none}
+.chip .x{font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.chip.fill{background:var(--u);color:#fff}
+.chip.line{box-shadow:inset 0 0 0 1.5px var(--u);color:var(--text)}
+.more{font-size:11px;font-weight:700;color:var(--muted);padding-left:4px}
+@container (max-width:118px){.chip .x{display:none}}
+.months.m4 .cell{padding:3px 4px;gap:2px}.months.m4 .cell .d{font-size:12px;width:20px;height:20px;line-height:20px}
+.months.m4 .chip{height:16px;font-size:11px;padding:0 4px}.months.m4 .chip .x,.months.m4 .hn{display:none}
+.months.m4 .cell .wi{top:4px;right:4px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--muted);flex:none;padding:0 2px}
+
+/* 오른쪽 패널 */
+.panel{display:flex;flex-direction:column;min-height:0;background:var(--bg);border-left:1px solid var(--line)}
+.calwrap.ov .panel{position:fixed;top:0;right:0;bottom:0;width:440px;z-index:30;transform:translateX(100%);transition:transform .22s ease-out;box-shadow:var(--pop-shadow)}
+.calwrap.ov.open .panel{transform:none}
+.scrim{display:none}
+.calwrap.ov.open .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:29}
+.ph{display:flex;align-items:center;gap:8px;padding:12px 16px 12px 20px;border-bottom:1px solid var(--line);min-height:64px;flex:none}
+.ph h2{font-family:var(--font-display);font-weight:var(--display-w);font-size:20px}
+.ph .sub{font-size:12px;color:var(--muted)}
+.pb{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.pf{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;flex:none}
+.pf .btn{flex:1}
+
+/* 카드 */
+.card{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:16px;position:relative;overflow:hidden}
+.card .bar{position:absolute;left:0;right:0;top:0;height:5px;background:var(--u)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-top:2px}
+.card h3{margin:8px 0 0;font-size:17px;line-height:1.35}
+.card h4{margin:0 0 10px;font-size:14px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:8px}
+.card .sub{font-size:13px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 9px;border-radius:var(--chip-r);font-size:12px;font-weight:700;background:var(--u);color:#fff;white-space:nowrap}
+.badge.soft{background:var(--surface-2);color:var(--text)}
+.badge.dd{background:var(--accent-soft);color:var(--accent);font-family:var(--font-num-sm);font-variant-numeric:tabular-nums}
+.bigtime{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:12px 0 8px}
+.bigtime div{background:var(--surface-2);border-radius:var(--r);padding:7px 10px}
+.bigtime .k{font-size:11px;color:var(--muted)}
+.bigtime .v{font-family:var(--font-num);font-weight:var(--num-w);font-size:20px;line-height:1.25;white-space:nowrap}
+.bigtime .v.s{font-family:var(--font-num-sm);font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;padding-top:3px}
+.bigtime .go .v{color:var(--accent)}
+.rows{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:14px;min-height:44px}
+.row .k{color:var(--muted);font-size:13px}
+.row .v{overflow-wrap:anywhere}
+.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 8px}
+.checks label{display:flex;align-items:center;gap:8px;font-size:13px;min-height:34px;cursor:pointer}
+input[type=checkbox],input[type=radio]{width:18px;height:18px;accent-color:var(--accent);flex:none}
+.sec-t{font-size:13px;font-weight:700;color:var(--muted);margin:10px 0 6px}
+.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:12px}
+.actions .btn{min-height:40px;font-size:13px;padding:0 8px}
+.warnbox{display:flex;gap:8px;padding:10px 12px;border-radius:var(--r);font-size:13px;background:var(--warn-soft);color:var(--warn);font-weight:600}
+.warnbox.d{background:var(--danger-soft);color:var(--danger)}
+.warnbox.ok{background:var(--surface-2);color:var(--muted)}
+.warnbox svg{flex:none;margin-top:1px}
+.calc{font-size:13px;background:var(--accent-soft);color:var(--accent);padding:9px 12px;border-radius:var(--r-sm);font-weight:600}
+.empty{text-align:center;color:var(--muted);font-size:14px;padding:32px 8px}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--accent-soft);color:var(--accent)}
+.pill.bad{background:var(--danger-soft);color:var(--danger)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.ab{width:36px;height:36px;flex:none;border-radius:var(--r-sm);background:var(--u);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12.5px}
+[data-theme="planner"] .ab{border-radius:50%}
+.ab.lg{width:48px;height:48px;font-size:15px}
+
+/* 폼 */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.field>.lb{font-size:13px;font-weight:600;color:var(--muted)}
+.field input[type=text],.field input[type=date],.field input[type=time],.field input[type=number],.field input[type=tel],.field input[type=url],.field select,.field textarea{font-size:16px;line-height:1.4;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;min-height:44px;width:100%}
+.field textarea{min-height:84px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts label{display:inline-flex;align-items:center;gap:6px;font-size:14px;padding:0 12px;min-height:40px;border-radius:var(--chip-r);background:var(--bg);border:1px solid var(--line);cursor:pointer}
+.opts label:has(input:checked){border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.swatches button{width:32px;height:32px;border-radius:50%;border:0;background:var(--u);cursor:pointer}
+.swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--text)}
+
+/* ===== 일반 페이지(전체 폭) ===== */
+.page{flex:1;overflow-y:auto;padding:20px 24px 40px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.tile{background:var(--surface);box-shadow:var(--shadow);border-radius:var(--r);padding:12px 16px}
+.tile .k{font-size:12px;color:var(--muted)}
+.tile .v{font-family:var(--font-num);font-weight:var(--num-w);font-size:24px;line-height:1.3}
+.tile .v small{font-family:var(--font);font-size:13px;color:var(--muted);font-weight:500;margin-left:2px}
+.tblwrap{background:var(--surface);box-shadow:var(--shadow);border-radius:var(--r-lg);overflow:auto}
+table.tbl{width:100%;border-collapse:collapse}
+.tbl th{position:sticky;top:0;text-align:left;font-size:12px;font-weight:700;color:var(--muted);padding:11px 12px;background:var(--surface-2);white-space:nowrap}
+.tbl th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+.tbl th button[aria-sort]{color:var(--text)}
+.tbl td{padding:10px 12px;border-top:1px solid var(--line);font-size:14px;white-space:nowrap;vertical-align:middle}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:hover td{background:var(--surface-2)}
+.tbl .uc{display:flex;align-items:center;gap:10px}
+.tbl .n{font-weight:700}
+.tbl .r{text-align:right}
+.cols{display:grid;gap:16px;align-items:start}
+.cols.c3{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr)}
+.cols.c2{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
+.cols.c2e{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:1439px){.cols.c3{grid-template-columns:repeat(2,minmax(0,1fr))}.cols.c3>:last-child{grid-column:1/-1}.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.li{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 4px;border-top:1px solid var(--line);background:transparent;border-left:0;border-right:0;border-bottom:0;text-align:left;cursor:pointer;width:100%}
+.li:first-child{border-top:0}
+.li:hover{background:var(--surface-2)}
+.li .n{font-weight:700;font-size:14.5px}
+.li .m{font-size:12.5px;color:var(--muted)}
+
+/* 대학 등록 폼: 왼쪽 목차 + 섹션 2열 격자 */
+.uform{display:grid;grid-template-columns:190px minmax(0,1fr);gap:24px;align-items:start}
+.toc{position:sticky;top:0;display:flex;flex-direction:column;gap:2px}
+.toc button{border:0;background:transparent;text-align:left;padding:9px 12px;border-radius:var(--r-sm);font-weight:600;font-size:13.5px;color:var(--muted);cursor:pointer}
+.toc button:hover{background:var(--surface-2);color:var(--text)}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+@media (max-width:1439px){.uform{grid-template-columns:minmax(0,1fr)}.toc{display:none}}
+@media (max-width:1279px){.fgrid{grid-template-columns:minmax(0,1fr)}}
+.fsec{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;scroll-margin-top:12px}
+.fsec>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 18px;font-weight:700;cursor:pointer;min-height:52px}
+.fsec>summary::-webkit-details-marker{display:none}
+.fsec>summary .c{font-size:12px;color:var(--muted);font-weight:500}
+.fsec>summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:-4px 4px 0 12px}
+.fsec[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+.fsec>summary .c{margin-left:auto}
+.fbody{padding:2px 18px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px 16px}
+.fbody .full{grid-column:1/-1}
+.doc-row{display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.doc-row:first-child{border-top:0}
+.doc-row label{display:flex;gap:8px;align-items:center;font-size:14px}
+.doc-row select{font-size:14px;min-height:36px;padding:4px 8px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--bg)}
+
+/* 서류 상태 3단계 */
+.st3{display:inline-flex;gap:2px;padding:2px;border-radius:var(--r-sm);background:var(--surface-2)}
+.st3 button{border:0;background:transparent;font-size:12px;font-weight:600;color:var(--muted);height:28px;padding:0 9px;border-radius:calc(var(--r-sm) - 1px);cursor:pointer;white-space:nowrap}
+.st3 button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.st3 button[aria-pressed="true"].s2{background:var(--accent);color:var(--accent-ink);box-shadow:none}
+
+/* 겹침 목록 */
+.ovgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(460px,1fr));gap:16px}
+.ovpair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:stretch;margin-top:12px}
+.ovside{background:var(--surface-2);border-radius:var(--r);padding:10px 12px;border-top:4px solid var(--u)}
+.ovside b{display:block}
+.ovgap{display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:var(--muted);text-align:center}
+.ovgap .num{font-size:20px;color:var(--text)}
+
+/* 테마 선택 카드 */
+.themes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tcard{border:2px solid transparent;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:6px;cursor:pointer;text-align:left}
+.tcard[aria-checked="true"]{border-color:var(--accent)}
+.tprev{background:var(--bg);color:var(--text);border-radius:calc(var(--r-lg) - 4px);padding:14px 12px;height:128px;display:flex;flex-direction:column;gap:8px;font-family:var(--font)}
+.tprev .tt{font-family:var(--font-display);font-weight:var(--display-w);font-size:20px}
+.tprev .dn{font-family:var(--font-num);font-weight:var(--num-w);font-size:26px;color:var(--accent);line-height:1}
+.tmeta{padding:8px 6px 4px}
+.tmeta b{font-size:15px}
+.tmeta div{font-size:12px;color:var(--muted)}
+
+/* 시안 전용 도구, 안내 */
+.nav{padding-bottom:64px}
+@media (max-width:1439px){.mock-tool>span:first-child,.mock-tool .w{display:none}}
+.mock-tool{position:fixed;left:10px;bottom:12px;z-index:60;display:flex;align-items:center;gap:8px;padding:5px 5px 5px 14px;border-radius:999px;background:#1F1E1B;color:#F3F1EC;font:12px/1 -apple-system,"Apple SD Gothic Neo",sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.mock-tool button{border:0;border-radius:999px;background:transparent;color:inherit;font:600 12px/1 inherit;padding:8px 12px;cursor:pointer}
+.mock-tool button[aria-pressed="true"]{background:#F3F1EC;color:#1F1E1B}
+.mock-tool .w{opacity:.7}
+.toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:70;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:var(--r);font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+.narrow{display:none;position:fixed;inset:0;z-index:80;background:var(--bg);align-items:center;justify-content:center;padding:24px;text-align:center}
+@media (max-width:1023px){.narrow{display:flex}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="narrow"><div><h2 style="font-family:var(--font-display);font-weight:var(--display-w);margin-bottom:8px">데스크톱 시안입니다</h2><p class="muted">1024px 미만에서는 모바일 화면이 적용됩니다.<br>모바일 시안은 <b>design-mockup.html</b>을 확인해 주세요.</p></div></div>
+<div class="mock-tool" role="group" aria-label="시안 도구"><span>시안 · 테마</span><button data-a="theme" data-v="wongoji">원고지</button><button data-a="theme" data-v="planner">플래너</button><span class="w" id="vw"></span></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+/* ---------- 예시 데이터 (가상, design-mockup.html과 같음) ---------- */
+var COLORS=['#1D4ED8','#C2410C','#047857','#6D28D9','#BE185D','#0E7490','#B45309','#475569','#A21CAF','#4D7C0F','#7C2D12','#4338CA'];
+var U=[
+ ['건국','건국대학교','경영학과','first','jinhak','K-30217',65000,true,true,'새천년관 3층 301호','2·7호선 건대입구역 6번 출구 → 도보 8분',55,['english'],'02-450-0007','first_pass'],
+ ['성대','성균관대학교','경영학과','reach','uway','S-11408',70000,true,false,'경영관 2층 33201호','혜화역 4번 출구 → 마을버스 02 → 정문',65,['english','interview'],'02-760-1000','pending'],
+ ['한양','한양대학교','경영학부','target','jinhak','H-52031',65000,true,false,'제1공학관 1층','2호선 한양대역 2번 출구 → 도보 5분',50,['english'],'02-2220-1901','pending'],
+ ['중앙','중앙대학교','경영학부','target','uway','C-20944',60000,true,true,'310관 B4층','9호선 흑석역 4번 출구 → 도보 7분',60,['english'],'02-820-6396','pending'],
+ ['경희','경희대학교','경영학과','target','jinhak','',60000,false,false,'','',70,['english'],'','pending'],
+ ['동국','동국대학교','경영학과','safe','uway','',60000,false,false,'','',50,['english','document'],'','pending'],
+ ['홍익','홍익대학교','경영학부','target','jinhak','',60000,false,false,'','',45,['english'],'','pending'],
+ ['숭실','숭실대학교','경영학부','safe','jinhak','',55000,false,false,'','',60,['english'],'','pending'],
+ ['세종','세종대학교','경영학부','safe','uway','',55000,false,false,'','',55,['english'],'','pending'],
+ ['광운','광운대학교','경영학부','safe','jinhak','',55000,false,false,'','',50,['english'],'','pending'],
+ ['국민','국민대학교','경영학부','safe','uway','',55000,false,false,'','',60,['english','interview'],'','pending'],
+ ['인하','인하대학교','경영학과','safe','jinhak','',55000,false,false,'','',90,['english'],'','pending']
+].map(function(r,i){return {id:i,short:r[0],name:r[1],dept:r[2],pri:r[3],agency:r[4],no:r[5],fee:r[6],paid:r[7],printed:r[8],venue:r[9],transit:r[10],travel:r[11],buffer:30,exam:r[12],phone:r[13],result:r[14],color:COLORS[i]}});
+var T={apply:['원서 접수','▲',0],exam:['필기시험','●',1],venue_notice:['고사장 발표','○',0],first_result:['1단계 발표','○',0],doc_deadline:['서류 마감','▲',0],interview:['면접','◆',1],final_result:['최종 발표','○',0],payment:['등록금 납부','▲',0],extra_result:['충원 발표','○',0],other:['기타','·',0]};
+var PERIOD={apply:1,payment:1,doc_deadline:1,other:1};
+var E=[
+ [1,'other','2026-11-27','','','','','모집요강 발표'],[0,'other','2026-11-30','','','','','모집요강 발표'],
+ [0,'apply','2026-12-01','2026-12-03','','','18:00'],[1,'apply','2026-12-02','2026-12-04','','','17:00'],[2,'apply','2026-12-07','2026-12-09','','','18:00'],[3,'apply','2026-12-08','2026-12-10','','','17:00'],
+ [4,'apply','2026-12-09','2026-12-11','','','18:00'],[5,'apply','2026-12-14','2026-12-16','','','17:00'],
+ [0,'venue_notice','2026-12-18','','','14:00',''],
+ [0,'exam','2026-12-24','','09:30','10:00','11:00'],
+ [3,'exam','2026-12-27','','09:00','09:30','11:00'],[2,'exam','2026-12-27','','13:30','14:00','15:00'],
+ [7,'exam','2027-01-03','','09:30','10:00','11:00'],[0,'first_result','2027-01-06','','','14:00',''],
+ [8,'exam','2027-01-09','','13:30','14:00','15:00'],
+ [4,'exam','2027-01-10','','09:30','10:00','11:30'],[1,'exam','2027-01-10','','13:00','13:30','15:00'],
+ [0,'doc_deadline','2027-01-12','','','','17:00'],[1,'first_result','2027-01-14','','','10:00',''],
+ [9,'exam','2027-01-16','','09:30','10:00','11:00'],
+ [5,'exam','2027-01-17','','09:30','10:00','11:30'],[6,'exam','2027-01-17','','11:00','11:30','12:30'],
+ [2,'first_result','2027-01-20','','','14:00',''],[1,'interview','2027-01-21','','13:30','14:00','17:00'],
+ [10,'exam','2027-01-23','','09:30','10:00','11:00'],[11,'exam','2027-01-24','','12:30','13:00','14:00'],
+ [10,'interview','2027-01-30','','09:30','10:00','12:00'],
+ [0,'final_result','2027-02-02','','','14:00',''],[1,'final_result','2027-02-04','','','10:00',''],[2,'final_result','2027-02-05','','','14:00',''],
+ [0,'payment','2027-02-10','2027-02-12','','','16:00'],[0,'extra_result','2027-02-15','','','10:00','','1차'],[0,'extra_result','2027-02-18','','','10:00','','2차']
+].map(function(r,i){return {id:i,u:r[0],type:r[1],date:r[2],end:r[3],ci:r[4],st:r[5],et:r[6],memo:r[7]||''}});
+var DOCS=[[0,'수료 예정 증명서','2027-01-12',0,'upload'],[0,'대학 성적 증명서','2027-01-12',1,'upload'],[0,'학업 계획서','2027-01-12',2,'upload'],[1,'학업 계획서','2027-01-18',0,'mail'],[10,'자기소개서','2027-01-27',0,'upload'],[10,'대학 성적 증명서','2027-01-27',1,'visit']]
+ .map(function(r,i){return {id:i,u:r[0],name:r[1],due:r[2],st:r[3],how:r[4]}});
+var CHECK=['수험표 2장','실물 신분증','컴퓨터용 사인펜','수정테이프','아날로그 손목시계','교통카드','소액 현금'];
+var HOL={'2026-12-25':'성탄절','2027-01-01':'신정','2027-02-06':'설 연휴','2027-02-07':'설날','2027-02-08':'설 연휴','2027-02-09':'대체공휴일'};
+var MONTHS=[[2026,10],[2026,11],[2027,0],[2027,1]];
+var TODAY='2026-12-21';
+var DOW=['일','월','화','수','목','금','토'];
+var PRI={first:'1지망',reach:'상향',target:'적정',safe:'안정'};
+var PRI_ORDER={first:0,reach:1,target:2,safe:3};
+var AG={jinhak:'진학어플라이',uway:'유웨이',school:'대학 자체'};
+var EX={english:'영어',interview:'면접',document:'서류 평가'};
+var RES={pending:'대기',first_pass:'1단계 합격',final_pass:'최종 합격',waitlist:'예비',fail:'불합격'};
+var DST=['준비 중','발급·작성 완료','제출 완료'];
+var HOW={upload:'온라인 업로드',mail:'우편',visit:'방문'};
+
+/* ---------- 상태 ---------- */
+var S={view:'cal',mode:'1',m:1,sel:'2026-12-24',panel:'day',form:null,filter:'all',univ:0,sort:'next',dir:1,open:false,checked:{}};
+
+/* ---------- 계산 (구현 시 src/lib으로 옮기고 단위 테스트) ---------- */
+function pad(n){return (n<10?'0':'')+n}
+function key(y,m,d){return y+'-'+pad(m+1)+'-'+pad(d)}
+function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+function md(s){var d=parse(s);return (d.getMonth()+1)+'/'+d.getDate()+'('+DOW[d.getDay()]+')'}
+function ddn(s){return Math.round((parse(s)-parse(TODAY))/864e5)}
+function dday(s){var n=ddn(s);return n===0?'D-DAY':n>0?'D-'+n:'완료'}
+function mins(t){if(!t)return null;var p=t.split(':');return +p[0]*60+ +p[1]}
+function hm(m){return pad(Math.floor(m/60))+':'+pad(m%60)}
+function uOf(e){return U[e.u]}
+function timed(e){return T[e.type][2]===1}
+function isDeadline(e){return T[e.type][1]==='▲'}
+function byTime(a,b){return (mins(a.ci||a.st||a.et)||0)-(mins(b.ci||b.st||b.et)||0)}
+function evOn(k){return E.filter(function(e){return e.date===k||(e.end&&k===e.end)}).sort(byTime)}
+function pass(e){return S.filter==='all'||(S.filter==='timed'&&timed(e))||(S.filter==='due'&&isDeadline(e))}
+function overlapsOf(list){var xs=list.filter(timed).sort(function(a,b){return mins(a.ci||a.st)-mins(b.ci||b.st)});var out=[];
+ for(var i=0;i<xs.length;i++)for(var j=i+1;j<xs.length;j++){var a=xs[i],b=xs[j];var aE=a.et?mins(a.et):mins(a.st)+120,bS=mins(b.ci||b.st);var gap=bS-aE;out.push({a:a,b:b,gap:gap,lv:gap<0?2:gap<120?1:0})}return out}
+function overlaps(k){return overlapsOf(E.filter(function(e){return e.date===k}))}
+function level(k){return overlaps(k).reduce(function(m,o){return Math.max(m,o.lv)},0)}
+function depart(e){var x=uOf(e),t=mins(e.ci||e.st);return t==null?null:hm(t-x.travel-x.buffer)}
+function upcoming(){return E.filter(function(e){return timed(e)&&e.date>=TODAY}).sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:byTime(a,b)})}
+function nextOf(x){return E.filter(function(e){return e.u===x.id&&(e.end||e.date)>=TODAY}).sort(function(a,b){return a.date<b.date?-1:1})[0]}
+function badDays(){return E.map(function(e){return e.date}).filter(function(v,i,a){return v>=TODAY&&a.indexOf(v)===i&&level(v)>0}).sort()}
+function monthOf(k){var d=parse(k);return MONTHS.findIndex(function(m){return m[0]===d.getFullYear()&&m[1]===d.getMonth()})}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function won(n){return n.toLocaleString('ko-KR')+'원'}
+
+/* ---------- 아이콘 (선 아이콘, stroke 1.8) ---------- */
+function ic(n,s){s=s||20;var p={
+ cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ uni:'<path d="M3 10l9-6 9 6M5 10v9M19 10v9M9 10v9M15 10v9M3 21h18"/>',
+ doc:'<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',back:'<path d="M15 5l-7 7 7 7"/>',fwd:'<path d="M9 5l7 7-7 7"/>',
+ warn:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',print:'<path d="M7 9V3h10v6M7 17H4v-7h16v7h-3"/><rect x="7" y="14" width="10" height="7"/>',
+ share:'<path d="M12 3v12M7 8l5-5 5 5M5 13v8h14v-8"/>',copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V4h12"/>',
+ gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',filter:'<path d="M4 5h16l-6 8v6l-4-2v-4z"/>',
+ map:'<path d="M12 21s-7-6-7-11a7 7 0 0114 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',phone:'<path d="M5 4h4l2 5-3 2a11 11 0 005 5l2-3 5 2v4a2 2 0 01-2 2A17 17 0 013 6a2 2 0 012-2"/>',
+ sortd:'<path d="M7 10l5 5 5-5"/>',sortu:'<path d="M7 14l5-5 5 5"/>'}[n];
+ return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'}
+
+/* ---------- 칩: 넓은 칸은 종류·시각까지, 좁은 칸은 기호+약칭 ---------- */
+function chipText(e,k){var end=e.end&&k===e.end;switch(e.type){
+ case 'exam':return '필기 '+e.ci;case 'interview':return '면접 '+e.ci;
+ case 'apply':return end?'접수 마감 '+e.et:'접수 시작';case 'payment':return end?'등록 마감 '+e.et:'등록 시작';
+ case 'doc_deadline':return '서류 마감 '+(e.et||'');case 'venue_notice':return '고사장 '+e.st;
+ case 'first_result':return '1단계 '+e.st;case 'final_result':return '최종 '+e.st;case 'extra_result':return '충원 '+e.memo;
+ default:return e.memo||'기타'}}
+function chip(e,k){var x=uOf(e),t=T[e.type];return '<span class="chip '+(t[2]?'fill':'line')+'" style="--u:'+x.color+'"><span class="s">'+t[1]+'</span>'+esc(x.short)+'<span class="x">'+esc(chipText(e,k))+'</span></span>'}
+
+/* ---------- 왼쪽 메뉴 ---------- */
+function vNav(){var nb=badDays().length;var items=[['cal','달력','cal'],['univs','지원 현황','uni'],['docs','서류·준비물','doc'],['overlap','겹치는 일정','warn',nb],null,['export','캘린더 내보내기','share'],['print','A4 인쇄','print'],['settings','설정','gear']];
+ var cur=S.view==='univ'||S.view==='uform'?'univs':S.view;
+ return '<nav class="nav" aria-label="주 메뉴"><div class="brand"><span class="logo" aria-hidden="true">편</span><div class="t"><b>편입 캘린더</b><small>TExam Calendar · 2027</small></div></div>'+
+ items.map(function(it){if(!it)return '<div class="nav-sep"></div>';return '<button class="ni" data-a="nav" data-v="'+it[0]+'" title="'+it[1]+'"'+(cur===it[0]?' aria-current="page"':'')+'>'+ic(it[2],22)+'<span class="l">'+it[1]+'</span>'+(it[3]?'<span class="cnt">'+it[3]+'</span>':'')+'</button>'}).join('')+
+ '<div class="nav-foot"><span class="avatar">지</span><span class="t">우리 가족 · 2명<br>자녀 계정으로 로그인</span></div></nav>'}
+
+/* ---------- 달력 ---------- */
+function vCal(){var mode=S.mode,m=S.m;var shown=mode==='1'?[m]:mode==='2'?[Math.min(m,2),Math.min(m,2)+1]:[0,1,2,3];
+ var title=mode==='4'?'2026년 11월 ~ 2027년 2월':shown.map(function(i){return (i===shown[0]||MONTHS[i][0]!==MONTHS[shown[0]][0]?MONTHS[i][0]+'년 ':'')+(MONTHS[i][1]+1)+'월'}).join(' · ');
+ var h='<header class="topbar">';
+ if(mode!=='4')h+='<button class="icon-btn" data-a="mon" data-v="'+(shown[0]-1)+'" aria-label="이전 달"'+(shown[0]===0?' disabled':'')+'>'+ic('back')+'</button><button class="icon-btn" data-a="mon" data-v="'+(shown[0]+1)+'" aria-label="다음 달"'+(shown[shown.length-1]===3?' disabled':'')+'>'+ic('fwd')+'</button>';
+ h+='<h1>'+title+'</h1>';
+ h+='<div class="seg" role="tablist" aria-label="달 선택">'+MONTHS.map(function(x,i){return '<button role="tab" data-a="mon" data-v="'+i+'" aria-pressed="'+(shown.indexOf(i)>-1&&mode!=='4')+'">'+(x[1]+1)+'월</button>'}).join('')+'</div><span class="sp"></span>';
+ h+='<div class="seg" aria-label="보기">'+[['1','1개월'],['2','2개월'],['4','4개월']].map(function(o){return '<button data-a="mode" data-v="'+o[0]+'" aria-pressed="'+(mode===o[0])+'">'+o[1]+'</button>'}).join('')+'</div>';
+ h+='<div class="seg" aria-label="필터">'+[['all','전체'],['timed','시험·면접'],['due','마감']].map(function(o){return '<button data-a="filter" data-v="'+o[0]+'" aria-pressed="'+(S.filter===o[0])+'">'+o[1]+'</button>'}).join('')+'</div>';
+ h+='<button class="btn ghost sm" data-a="toast" data-v="대학별 표시 끄기·켜기 목록이 열립니다(구현 단계).">'+ic('filter',18)+'대학 12</button>';
+ h+='<button class="icon-btn" data-a="nav" data-v="print" aria-label="A4 인쇄">'+ic('print')+'</button>';
+ h+='<button class="btn pri" data-a="add" data-v="'+S.sel+'">'+ic('plus',18)+'일정 추가</button></header>';
+ var ov=mode!=='1';
+ h+='<div class="calwrap'+(ov?' ov m'+mode:'')+(S.open?' open':'')+'"><div class="calmain">';
+ var up=upcoming();h+='<div class="ddays">'+up.slice(0,6).map(function(e){var x=uOf(e);return '<button class="dd" data-a="sel" data-v="'+e.date+'"><span class="n">'+dday(e.date)+'</span><span style="min-width:0"><span class="t1">'+x.short+' '+T[e.type][0]+'</span><span class="t2">'+md(e.date)+' 입실 '+e.ci+' · 출발 '+depart(e)+'</span></span></button>'}).join('')+'</div>';
+ var bad=badDays();if(bad.length){var c=bad.filter(function(k){return level(k)===2}).length;h+='<button class="alert" data-a="nav" data-v="overlap">'+ic('warn',18)+'겹치는 시험 '+bad.length+'건 (충돌 '+c+' · 주의 '+(bad.length-c)+') · '+bad.map(md).join(', ')+'<span class="sp"></span>목록 보기 ›</button>'}
+ h+='<div class="months m'+mode+'">'+shown.map(function(i){return vMonth(i,mode)}).join('')+'</div>';
+ h+='<div class="legend"><span>● 필기</span><span>◆ 면접</span><span>▲ 마감(원서·서류·등록)</span><span>○ 발표</span><span>채움 = 시험·면접 · 테두리 = 그 밖의 일정</span><span>⚠ 빨강 충돌 · 주황 간격 주의</span><span class="sp"></span><span>시안 기준일 2026-12-21(가상 데이터)</span></div>';
+ h+='</div><div class="scrim" data-a="close"></div><aside class="panel" aria-label="상세 패널">'+(S.panel==='form'?vForm():vDay(S.sel))+'</aside></div>';
+ return h}
+function vMonth(i,mode){var Y=MONTHS[i][0],M=MONTHS[i][1];var first=new Date(Y,M,1).getDay(),days=new Date(Y,M+1,0).getDate(),weeks=Math.ceil((first+days)/7);
+ var mev=E.filter(function(e){var d=parse(e.date);return d.getFullYear()===Y&&d.getMonth()===M});
+ var sum='시험·면접 '+mev.filter(timed).length+' · 마감 '+mev.filter(isDeadline).length+' · 발표 '+mev.filter(function(e){return T[e.type][1]==='○'}).length;
+ var lim=mode==='1'?4:mode==='2'?3:2;
+ var h='<section class="month" aria-label="'+Y+'년 '+(M+1)+'월"><div class="mhead">'+(mode==='1'?'':'<h3>'+(M+1)+'월</h3>')+'<span class="s">'+Y+'년 '+(M+1)+'월 · '+sum+'</span></div>';
+ h+='<div class="dow">'+DOW.map(function(d){return '<div>'+d+'</div>'}).join('')+'</div><div class="grid" style="--weeks:'+weeks+'">';
+ for(var c=0;c<weeks*7;c++){var d=c-first+1;if(d<1||d>days){h+='<div class="cell out" aria-hidden="true"></div>';continue}
+  var k=key(Y,M,d),dw=c%7,all=evOn(k),ev=all.filter(pass),lv=level(k),l=HOL[k]?lim-1:lim;
+  var cls='cell'+(dw===0?' sun':'')+(dw===6?' sat':'')+(HOL[k]?' hol':'')+(k===TODAY?' today':'')+(k===S.sel?' sel':'');
+  h+='<button class="'+cls+'" data-a="sel" data-v="'+k+'" aria-label="'+(M+1)+'월 '+d+'일, 일정 '+all.length+'개'+(lv?(lv===2?', 시간 충돌':', 간격 주의'):'')+'"><span class="dl"><span class="d">'+d+'</span>'+(HOL[k]?'<span class="hn">'+HOL[k]+'</span>':'')+'</span>';
+  if(lv)h+='<span class="wi'+(lv===1?' w2':'')+'">'+ic('warn',mode==='4'?13:16)+'</span>';
+  ev.slice(0,l).forEach(function(e){h+=chip(e,k)});if(ev.length>l)h+='<span class="more">+'+(ev.length-l)+'</span>';
+  h+='</button>'}
+ return h+'</div></section>'}
+
+/* ---------- 오른쪽 패널: 날짜 상세 ---------- */
+function vDay(k){var ev=evOn(k),ov=overlaps(k),h='';var n=ddn(k);
+ h+='<div class="ph"><div><h2>'+md(k)+(HOL[k]?' · '+HOL[k]:'')+'</h2><div class="sub">'+(n===0?'오늘':n>0?n+'일 뒤':(-n)+'일 전')+' · 일정 '+ev.length+'개</div></div><span class="sp"></span>'+(S.mode!=='1'?'<button class="icon-btn" data-a="close" aria-label="닫기">'+ic('x')+'</button>':'')+'</div><div class="pb">';
+ ov.forEach(function(o){var a=uOf(o.a),b=uOf(o.b);if(!o.lv){h+='<div class="warnbox ok">같은 날 일정 2개 · '+a.short+' 종료 '+(o.a.et||'-')+' → '+b.short+' 입실 '+(o.b.ci||o.b.st)+' · 간격 '+o.gap+'분</div>';return}
+  h+='<div class="warnbox'+(o.lv===2?' d':'')+'">'+ic('warn',18)+'<span>'+(o.lv===2?'시간 충돌: ':'간격 주의: ')+a.short+' '+T[o.a.type][0]+' 종료 '+(o.a.et||'-')+' → '+b.short+' 입실 '+(o.b.ci||o.b.st)+(o.lv===2?'':' · 간격 '+o.gap+'분(기준 120분)')+'<br>우선순위: '+a.short+' '+PRI[a.pri]+' / '+b.short+' '+PRI[b.pri]+'</span></div>'});
+ if(!ev.length)h+='<p class="empty">이 날짜에는 일정이 없습니다.<br>아래 버튼으로 바로 추가할 수 있습니다.</p>';
+ ev.forEach(function(e){h+=card(e,k)});
+ return h+'</div><div class="pf"><button class="btn pri block" data-a="add" data-v="'+k+'">'+ic('plus',18)+'이 날짜에 일정 추가</button></div>'}
+function card(e,k){var x=uOf(e),t=T[e.type],end=e.end&&k===e.end;
+ var h='<article class="card" style="--u:'+x.color+'"><div class="bar"></div><div class="card-top"><span class="badge">'+t[1]+' '+esc(x.short)+' · '+t[0]+(e.memo?' '+esc(e.memo):'')+'</span><span class="badge dd">'+(end||isDeadline(e)?'마감 ':'')+dday(end?e.end:e.date)+'</span></div>';
+ h+='<h3>'+esc(x.name)+' '+esc(x.dept)+'</h3>';
+ if(timed(e)){h+='<div class="bigtime"><div><div class="k">입실</div><div class="v">'+e.ci+'</div></div><div><div class="k">시작~종료</div><div class="v s">'+e.st+'–'+e.et+'</div></div><div class="go"><div class="k">권장 출발</div><div class="v">'+depart(e)+'</div></div></div>';
+  h+='<div class="rows"><div class="row"><span class="k">수험 번호</span><span class="v num">'+(x.no||'미입력')+'</span><button class="mini" data-a="toast" data-v="수험 번호를 복사했습니다">'+(x.no?'복사':'입력')+'</button></div>'+
+  '<div class="row"><span class="k">장소</span><span class="v">'+(x.venue||'미입력')+'</span><button class="mini">지도</button></div>'+
+  '<div class="row"><span class="k">교통</span><span class="v">'+(x.transit||'미입력')+'<br><span class="sub">소요 '+x.travel+'분 + 여유 '+x.buffer+'분</span></span><span></span></div>'+
+  '<div class="row"><span class="k">접수처</span><span class="v">'+AG[x.agency]+'</span>'+(x.phone?'<button class="mini">전화</button>':'<span></span>')+'</div></div>';
+  h+='<div class="sec-t">준비물</div><div class="checks">'+CHECK.map(function(c,i){var id='c'+x.id+'_'+i;return '<label><input type="checkbox" data-chk="'+id+'"'+(S.checked[id]||(i<2&&x.printed&&S.checked[id]!==false)?' checked':'')+'> '+c+'</label>'}).join('')+'</div>'}
+ else{var r=e.end?md(e.date)+' ~ '+md(e.end):md(e.date);h+='<p class="sub" style="margin:6px 0 0">'+r+(e.et?' · 마감 '+e.et:'')+(e.st?' · '+e.st:'')+'</p>';
+  if(e.type==='doc_deadline')h+='<div class="rows" style="margin-top:8px">'+DOCS.filter(function(d){return d.u===x.id&&d.due===e.date}).map(function(d){return '<div class="row"><span class="k">'+d.name.replace(' 증명서','')+'</span><span class="v"><span class="pill'+(d.st===2?' ok':'')+'">'+DST[d.st]+'</span></span><span></span></div>'}).join('')+'</div>'}
+ return h+'<div class="actions"><button class="btn sec" data-a="edit" data-v="'+e.id+'">'+ic('edit',16)+'수정</button><button class="btn sec" data-a="univ" data-v="'+x.id+'">대학 상세</button><button class="btn sec" data-a="toast" data-v="'+esc(x.short)+' '+t[0]+' 일정을 .ics로 내보냈습니다">캘린더에 추가</button></div></article>'}
+
+/* ---------- 오른쪽 패널: 일정 입력 (달력을 보면서) ---------- */
+function vForm(){var f=S.form,x=U[f.u],tp=f.type,isT=T[tp][2]===1,isP=!!PERIOD[tp];
+ var h='<div class="ph"><button class="icon-btn" data-a="cancel" aria-label="취소">'+ic('back')+'</button><div><h2>'+(f.id!=null?'일정 수정':'일정 추가')+'</h2><div class="sub">달력에서 날짜를 누르면 날짜가 바뀝니다</div></div></div><div class="pb">';
+ h+='<div class="field"><label for="f-u">대학</label><select id="f-u" data-f="u">'+U.map(function(y){return '<option value="'+y.id+'"'+(f.u===y.id?' selected':'')+'>'+esc(y.short)+' · '+esc(y.name)+' '+esc(y.dept)+'</option>'}).join('')+'<option value="new">+ 새 대학 등록</option></select></div>';
+ h+='<div class="field"><span class="lb">일정 종류</span><div class="opts" role="radiogroup">'+Object.keys(T).map(function(t){return '<label><input type="radio" name="ft" data-f="type" value="'+t+'"'+(tp===t?' checked':'')+'> '+T[t][1]+' '+T[t][0]+'</label>'}).join('')+'</div></div>';
+ if(isP)h+='<div class="two"><div class="field"><label for="f-d">시작 날짜</label><input id="f-d" type="date" data-f="date" value="'+f.date+'" min="2026-11-01" max="2027-02-28"></div><div class="field"><label for="f-e">종료(마감) 날짜</label><input id="f-e" type="date" data-f="end" value="'+(f.end||'')+'" min="'+f.date+'" max="2027-02-28"></div></div><div class="two"><div class="field"><label for="f-et">마감 시각</label><input id="f-et" type="time" data-f="et" value="'+(f.et||'')+'"></div><div></div></div>';
+ else h+='<div class="two"><div class="field"><label for="f-d">날짜</label><input id="f-d" type="date" data-f="date" value="'+f.date+'" min="2026-11-01" max="2027-02-28"></div>'+(isT?'<div class="field"><label for="f-ci">입실 시각</label><input id="f-ci" type="time" data-f="ci" value="'+(f.ci||'')+'"></div>':'<div class="field"><label for="f-st">발표 시각</label><input id="f-st" type="time" data-f="st" value="'+(f.st||'')+'"></div>')+'</div>';
+ if(isT)h+='<div class="two"><div class="field"><label for="f-st">시작 시각</label><input id="f-st" type="time" data-f="st" value="'+(f.st||'')+'"></div><div class="field"><label for="f-et">종료 시각</label><input id="f-et" type="time" data-f="et" value="'+(f.et||'')+'" placeholder="비우면 시작 + 120분"></div></div>'+
+  '<div class="field"><label for="f-v">장소(대학 기본 장소와 다를 때)</label><input id="f-v" type="text" data-f="venue" value="'+esc(f.venue||'')+'" placeholder="'+esc(x.venue||'대학 기본 장소')+'"></div>';
+ if(tp==='extra_result')h+='<div class="two"><div class="field"><label for="f-r">차수</label><input id="f-r" type="number" inputmode="numeric" min="1" value="1"></div><div></div></div>';
+ h+='<div class="field"><label for="f-m">메모</label><input id="f-m" type="text" data-f="memo" value="'+esc(f.memo||'')+'"></div>';
+ if(isT&&(f.ci||f.st)){var t0=mins(f.ci||f.st);h+='<div class="calc">권장 출발 '+hm(t0-x.travel-x.buffer)+' · 입실 '+(f.ci||f.st)+' − 소요 '+x.travel+'분 − 여유 '+x.buffer+'분</div>';
+  var tmp={id:-1,u:f.u,type:tp,date:f.date,ci:f.ci,st:f.st||f.ci,et:f.et};var others=E.filter(function(e){return e.date===f.date&&e.id!==f.id});var os=overlapsOf(others.concat([tmp])).filter(function(o){return o.a===tmp||o.b===tmp});
+  if(!others.filter(timed).length)h+='<div class="warnbox ok">'+md(f.date)+'에는 다른 시험·면접이 없습니다.</div>';
+  os.forEach(function(o){var oth=o.a===tmp?o.b:o.a,y=uOf(oth);h+='<div class="warnbox'+(o.lv===2?' d':o.lv===0?' ok':'')+'">'+(o.lv?ic('warn',18):'')+'<span>'+(o.lv===2?'시간 충돌 · ':o.lv===1?'간격 주의 · ':'겹치지 않음 · ')+'같은 날 '+y.short+' '+T[oth.type][0]+' 입실 '+(oth.ci||oth.st)+' · 간격 '+o.gap+'분(기준 120분)'+(o.lv?'<br>경고가 있어도 저장할 수 있습니다.':'')+'</span></div>'})}
+ return h+'</div><div class="pf"><button class="btn sec" data-a="cancel">취소</button><button class="btn pri" data-a="save">저장 (Enter)</button></div>'}
+
+/* ---------- 지원 현황: 전체 폭 표 ---------- */
+function vUnivs(){var fee=U.reduce(function(a,x){return a+x.fee},0),paid=U.filter(function(x){return x.paid}),pr=U.filter(function(x){return x.printed}).length,left=upcoming().length;
+ var h='<header class="topbar"><h1>지원 현황</h1><span class="sub">2027학년도 일반편입 · '+U.length+'곳</span><span class="sp"></span><label class="search">'+ic('search',18)+'<input type="text" placeholder="대학·학과 검색" aria-label="대학 검색"></label><button class="btn pri" data-a="uform">'+ic('plus',18)+'대학 등록</button></header><div class="page">';
+ h+='<div class="tiles"><div class="tile"><div class="k">지원 대학</div><div class="v">'+U.length+'<small>곳</small></div></div><div class="tile"><div class="k">전형료 합계</div><div class="v">'+fee.toLocaleString()+'<small>원</small></div></div><div class="tile"><div class="k">전형료 결제</div><div class="v">'+paid.length+'/'+U.length+'<small>미결제 '+won(fee-paid.reduce(function(a,x){return a+x.fee},0))+'</small></div></div><div class="tile"><div class="k">수험표 출력</div><div class="v">'+pr+'/'+U.length+'</div></div><div class="tile"><div class="k">남은 시험·면접</div><div class="v">'+left+'<small>건</small></div></div></div>';
+ var cols=[['short','대학'],['dept','학과'],['pri','우선순위'],['exam','전형'],['agency','접수처'],['no','수험 번호'],['fee','전형료'],['paid','결제'],['printed','수험표'],['next','다음 일정'],['result','결과']];
+ var list=U.slice().sort(function(a,b){var k=S.sort,va,vb;if(k==='next'){va=(nextOf(a)||{date:'9'}).date;vb=(nextOf(b)||{date:'9'}).date}else if(k==='pri'){va=PRI_ORDER[a.pri];vb=PRI_ORDER[b.pri]}else{va=a[k];vb=b[k]}return (va>vb?1:va<vb?-1:0)*S.dir});
+ h+='<div class="tblwrap"><table class="tbl"><thead><tr>'+cols.map(function(c){var on=S.sort===c[0];return '<th'+(c[0]==='fee'?' class="r"':'')+'><button data-a="sort" data-v="'+c[0]+'"'+(on?' aria-sort="'+(S.dir>0?'ascending':'descending')+'"':'')+'>'+c[1]+(on?ic(S.dir>0?'sortd':'sortu',14):'')+'</button></th>'}).join('')+'</tr></thead><tbody>';
+ list.forEach(function(x){var nx=nextOf(x);h+='<tr data-a="univ" data-v="'+x.id+'" tabindex="0" style="--u:'+x.color+'"><td><span class="uc"><span class="ab">'+esc(x.short)+'</span><span class="n">'+esc(x.name)+'</span></span></td><td>'+esc(x.dept)+'</td><td><span class="pill'+(x.pri==='first'?' ok':'')+'">'+PRI[x.pri]+'</span></td><td>'+x.exam.map(function(c){return EX[c]}).join(' + ')+'</td><td>'+AG[x.agency]+'</td><td class="num-sm">'+(x.no||'<span class="muted">미입력</span>')+'</td><td class="r num-sm">'+x.fee.toLocaleString()+'</td><td><span class="pill'+(x.paid?' ok':' bad')+'">'+(x.paid?'결제 완료':'미결제')+'</span></td><td><span class="pill'+(x.printed?' ok':'')+'">'+(x.printed?'출력 완료':'미출력')+'</span></td><td>'+(nx?T[nx.type][1]+' '+T[nx.type][0]+' · '+md(nx.end&&nx.date<TODAY?nx.end:nx.date)+' <span class="muted">'+dday(nx.end&&nx.date<TODAY?nx.end:nx.date)+'</span>':'<span class="muted">-</span>')+'</td><td><span class="pill'+(x.result==='first_pass'||x.result==='final_pass'?' ok':'')+'">'+RES[x.result]+'</span></td></tr>'});
+ return h+'</tbody></table></div></div>'}
+
+/* ---------- 대학 상세: 3열 ---------- */
+function vUniv(){var x=U[S.univ],ev=E.filter(function(e){return e.u===x.id}).sort(function(a,b){return a.date<b.date?-1:1});
+ var h='<header class="topbar" style="--u:'+x.color+'"><button class="icon-btn" data-a="nav" data-v="univs" aria-label="지원 현황으로">'+ic('back')+'</button><span class="ab lg">'+esc(x.short)+'</span><div><h1>'+esc(x.name)+' '+esc(x.dept)+'</h1><span class="sub">'+PRI[x.pri]+' · '+x.exam.map(function(c){return EX[c]}).join(' + ')+' · 결과 '+RES[x.result]+'</span></div><span class="sp"></span><button class="btn ghost" data-a="uform">'+ic('edit',18)+'정보 수정</button><button class="btn pri" data-a="addu" data-v="'+x.id+'">'+ic('plus',18)+'일정 추가</button></header><div class="page" style="--u:'+x.color+'"><div class="cols c3">';
+ h+='<div class="card"><div class="bar"></div><h4>수험 정보 · 장소와 교통</h4><div class="rows">'+
+ [['수험 번호','<span class="num">'+(x.no||'미입력')+'</span>','<button class="mini" data-a="toast" data-v="수험 번호를 복사했습니다">복사</button>'],['접수처',AG[x.agency],''],['전형료',won(x.fee),'<span class="pill'+(x.paid?' ok':' bad')+'">'+(x.paid?'결제 완료':'미결제')+'</span>'],['수험표',x.printed?'출력 완료':'미출력',''],['장소',x.venue||'미입력','<button class="mini">지도</button>'],['교통',(x.transit||'미입력')+'<br><span class="sub">소요 '+x.travel+'분 + 여유 '+x.buffer+'분</span>',''],['입학처',x.phone||'미입력',x.phone?'<button class="mini">전화</button>':''],['모집요강','<a href="#" style="color:var(--accent)">모집요강 열기</a>',''],['반영 비율','1단계 영어 100%','']].map(function(r){return '<div class="row"><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span>'+(r[2]||'<span></span>')+'</div>'}).join('')+'</div></div>';
+ h+='<div class="card"><h4>일정 · 시간순 <span class="sp"></span><span class="pill">'+ev.length+'개</span></h4>'+(ev.length?ev.map(function(e){var tm=timed(e);return '<button class="li" data-a="sel" data-v="'+e.date+'"><span class="ab" style="'+(tm?'':'background:var(--surface-2);color:var(--text)')+'">'+T[e.type][1]+'</span><span><span class="n">'+T[e.type][0]+(e.memo?' '+esc(e.memo):'')+'</span><br><span class="m">'+md(e.date)+(e.end?' ~ '+md(e.end):'')+(e.ci?' · 입실 '+e.ci+' · 출발 '+depart(e):'')+(e.et&&!tm?' · 마감 '+e.et:'')+'</span></span><span class="pill'+(ddn(e.end||e.date)>=0&&ddn(e.end||e.date)<=7?' warn':'')+'">'+dday(e.end||e.date)+'</span></button>'}).join(''):'<p class="empty">등록된 일정이 없습니다.</p>')+'</div>';
+ var ds=DOCS.filter(function(d){return d.u===x.id});
+ h+='<div style="display:flex;flex-direction:column;gap:16px"><div class="card"><h4>준비 서류</h4>'+(ds.length?ds.map(function(d){return '<div class="row" style="grid-template-columns:minmax(0,1fr) auto"><span>'+d.name+'<br><span class="sub">마감 '+md(d.due)+' · '+HOW[d.how]+'</span></span>'+st3(d)+'</div>'}).join(''):'<p class="sub" style="margin:0">등록된 서류가 없습니다.</p>')+'</div>';
+ h+='<div class="card"><h4>시험 당일 준비물 <span class="sp"></span><button class="mini" data-a="reset">체크 초기화</button></h4><div class="checks">'+CHECK.map(function(c,i){var id='c'+x.id+'_'+i;return '<label><input type="checkbox" data-chk="'+id+'"'+(S.checked[id]||(i<2&&x.printed&&S.checked[id]!==false)?' checked':'')+'> '+c+'</label>'}).join('')+'</div><p class="sub" style="margin:8px 0 0">반입 금지: 전자기기, 탁상시계</p></div>';
+ h+='<div class="card"><h4>결과와 메모</h4><div class="rows"><div class="row"><span class="k">결과</span><span class="v"><span class="pill ok">'+RES[x.result]+'</span></span><span></span></div><div class="row"><span class="k">후기</span><span class="v sub">시간이 빠듯했음. 독해 마지막 5문항 찍음.</span><span></span></div></div></div></div>';
+ return h+'</div></div>'}
+function st3(d){return '<span class="st3" role="group" aria-label="'+d.name+' 진행 상태">'+DST.map(function(s,i){return '<button class="s'+i+'" data-a="docst" data-v="'+d.id+':'+i+'" aria-pressed="'+(d.st===i)+'">'+['준비 중','완료','제출'][i]+'</button>'}).join('')+'</span>'}
+
+/* ---------- 대학 등록: 전체 폭 페이지 ---------- */
+function vUForm(){var secs=[['A','기본 정보','필수 3',1],['B','전형 방법','',1],['C','일정','저장 후 추가',0],['D','수험 정보','접수처 · 수험 번호 · 전형료',0],['E','준비 서류','학업 계획서 외 4종',0],['F','장소와 교통','권장 출발 자동 계산',0],['G','준비물','기본 7개 자동 추가',0],['H','결과와 메모','',0]];
+ function fld(lb,inp,full){return '<div class="field'+(full?' full':'')+'"><label>'+lb+'</label>'+inp+'</div>'}
+ function txt(v,ph,type,extra){return '<input type="'+(type||'text')+'" value="'+esc(v||'')+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+(extra||'')+'>'}
+ var body={
+  A:fld('지원 대학 *',txt('홍익대학교'))+fld('약칭 * (2~4자, 달력 칸 표시)',txt('홍익','','text',' maxlength="4"'))+fld('지원 학과(모집 단위) *',txt('경영학부'))+fld('지원 우선순위','<select><option>적정</option><option>1지망</option><option>상향</option><option>안정</option></select>')+fld('모집 인원',txt('','명','number',' inputmode="numeric"'))+fld('경쟁률',txt('','예: 25.28','number',' inputmode="decimal" step="0.01"'))+
+   '<div class="field full"><span class="lb">표시 색상 (등록 순서대로 자동 배정)</span><div class="swatches">'+COLORS.map(function(c,i){return '<button type="button" data-a="swatch" style="--u:'+c+'" aria-label="색상 '+(i+1)+'" aria-pressed="'+(i===6)+'"></button>'}).join('')+'</div></div>',
+  B:'<div class="field full"><span class="lb">시험 종류</span><div class="opts"><label><input type="checkbox" checked> 영어</label><label><input type="checkbox"> 면접</label><label><input type="checkbox"> 서류 평가</label></div></div>'+fld('단계 구분','<select><option>1단계만</option><option>1·2단계</option></select>')+fld('문항 수·시험 시간',txt('','예: 영어 40문항 60분'))+fld('반영 비율',txt('','예: 1단계 영어 100% → 2단계 1단계 60% + 면접 40%'),1),
+  C:'<p class="sub full" style="margin:0">대학을 저장한 뒤 달력(날짜 클릭)이나 대학 상세의 [일정 추가]에서 원서 접수·시험·발표 일정을 여러 개 등록합니다.</p>',
+  D:'<div class="field full"><span class="lb">원서 접수처</span><div class="opts"><label><input type="radio" name="ag" checked> 진학어플라이</label><label><input type="radio" name="ag"> 유웨이</label><label><input type="radio" name="ag"> 대학 자체</label></div></div>'+fld('수험 번호',txt(''))+fld('접수 번호(수험 번호와 다를 때)',txt(''))+fld('전형료(원)',txt('60000','','number',' inputmode="numeric"'))+'<div class="field"><span class="lb">진행</span><div class="opts"><label><input type="checkbox"> 결제 완료</label><label><input type="checkbox"> 수험표 출력</label></div></div>'+fld('입학처 전화',txt('','02-000-0000','tel',' inputmode="tel"'))+fld('입학처 홈페이지',txt('','https://','url'))+fld('모집요강 링크',txt('','https://','url'),1),
+  E:'<div class="full">'+['학업 계획서','자기소개서','대학 성적 증명서','수료·졸업 예정 증명서','기타(직접 입력)'].map(function(d,i){return '<div class="doc-row"><label><input type="checkbox"'+(i===0||i===2?' checked':'')+'> '+d+'</label><select aria-label="'+d+' 상태"><option>준비 중</option><option>발급·작성 완료</option><option>제출 완료</option></select></div>'}).join('')+'</div>'+fld('제출 방법','<select><option>온라인 업로드</option><option>우편</option><option>방문</option></select>')+fld('우편 마감 기준(우편일 때)','<select><option>소인 기준</option><option>도착 기준</option></select>')+'<div class="field"><span class="lb">원본</span><div class="opts"><label><input type="checkbox"> 원본 대조 필요</label></div></div>'+fld('서류 메모',txt('','예: 성적 증명서 영문 1부'),1),
+  F:fld('시험 장소',txt('','건물, 호실까지'))+fld('지도 링크(비우면 장소 이름으로 검색)',txt('','네이버 지도·카카오맵 공유 링크','url'))+fld('예상 소요 시간(분)',txt('45','','number',' inputmode="numeric"'))+fld('여유 시간(분)',txt('30','','number',' inputmode="numeric"'))+'<div class="field full"><label>대중교통</label><textarea placeholder="노선, 환승, 출구 번호">6호선 상수역 1번 출구 → 도보 10분</textarea></div><div class="calc full">권장 출발 = 입실 시각 − 소요 45분 − 여유 30분 (일정 입력 시 자동 계산)</div>',
+  G:'<div class="full checks">'+CHECK.map(function(c){return '<label><input type="checkbox" disabled> '+c+'</label>'}).join('')+'</div>'+fld('준비물 추가',txt('','예: 여분 안경'))+fld('반입 금지 물품 메모',txt('','예: 전자기기, 탁상시계')),
+  H:fld('결과','<select><option>대기</option><option>1단계 합격</option><option>최종 합격</option><option>예비</option><option>불합격</option></select>')+fld('예비 번호',txt('','','number'))+'<div class="field full"><label>시험 후기·가채점</label><textarea></textarea></div><div class="field full"><label>자유 메모</label><textarea></textarea></div>'};
+ var h='<header class="topbar"><button class="icon-btn" data-a="nav" data-v="univs" aria-label="취소">'+ic('x')+'</button><h1>대학 등록</h1><span class="sub">필수: 대학 이름 · 약칭 · 학과. 나머지는 정보가 나오는 대로 채웁니다.</span><span class="sp"></span><button class="btn sec" data-a="nav" data-v="univs">취소</button><button class="btn pri" data-a="usave">저장</button></header><div class="page"><div class="uform"><nav class="toc" aria-label="섹션">'+secs.map(function(s){return '<button data-a="toc" data-v="'+s[0]+'">'+s[0]+'. '+s[1]+'</button>'}).join('')+'</nav><div class="fgrid">';
+ secs.forEach(function(s){h+='<details class="fsec" id="sec-'+s[0]+'"'+(s[3]?' open':'')+'><summary>'+s[0]+'. '+s[1]+' <span class="c">'+s[2]+'</span></summary><div class="fbody">'+body[s[0]]+'</div></details>'});
+ return h+'</div></div></div>'}
+
+/* ---------- 서류·준비물 ---------- */
+function vDocs(){var list=DOCS.slice().sort(function(a,b){return a.due<b.due?-1:1});var nx=upcoming()[0],x=uOf(nx);
+ var h='<header class="topbar"><h1>서류·준비물</h1><span class="sub">미제출 '+DOCS.filter(function(d){return d.st<2}).length+'건</span><span class="sp"></span></header><div class="page"><div class="cols c2">';
+ h+='<div class="tblwrap"><table class="tbl"><thead><tr><th>대학</th><th>서류</th><th>진행 상태</th><th>제출 방법</th><th>마감</th><th>D-day</th></tr></thead><tbody>'+list.map(function(d){var y=U[d.u];var n=ddn(d.due);return '<tr style="--u:'+y.color+';cursor:default"><td><span class="uc"><span class="ab">'+esc(y.short)+'</span><span class="n">'+esc(y.name)+'</span></span></td><td>'+d.name+'</td><td>'+st3(d)+'</td><td>'+HOW[d.how]+'</td><td>'+md(d.due)+'</td><td><span class="pill'+(d.st===2?' ok':n<=7?' bad':'')+'">'+(d.st===2?'제출 완료':'마감 '+dday(d.due))+'</span></td></tr>'}).join('')+'</tbody></table></div>';
+ h+='<div style="display:flex;flex-direction:column;gap:16px"><div class="card" style="--u:'+x.color+'"><div class="bar"></div><h4>다음 시험 준비물 · '+x.short+' '+md(nx.date)+' <span class="sp"></span><span class="badge dd">'+dday(nx.date)+'</span></h4><div class="checks">'+CHECK.map(function(c,i){var id='c'+x.id+'_'+i;return '<label><input type="checkbox" data-chk="'+id+'"'+(S.checked[id]||(i<2&&x.printed&&S.checked[id]!==false)?' checked':'')+'> '+c+'</label>'}).join('')+'</div><button class="btn sec block" style="margin-top:12px" data-a="reset">체크 초기화 (다음 시험 준비)</button></div>';
+ h+='<div class="card"><h4>다가오는 시험별 준비</h4>'+upcoming().slice(1,6).map(function(e){var y=uOf(e);return '<button class="li" data-a="univ" data-v="'+y.id+'" style="--u:'+y.color+'"><span class="ab">'+esc(y.short)+'</span><span><span class="n">'+T[e.type][0]+' · '+md(e.date)+'</span><br><span class="m">수험표 '+(y.printed?'출력 완료':'미출력')+' · 준비물 0/7</span></span><span class="pill">'+dday(e.date)+'</span></button>'}).join('')+'</div></div>';
+ return h+'</div></div>'}
+
+/* ---------- 겹치는 일정 ---------- */
+function vOverlap(){var days=E.map(function(e){return e.date}).filter(function(v,i,a){return a.indexOf(v)===i&&overlaps(v).length}).sort();
+ var h='<header class="topbar"><h1>겹치는 일정</h1><span class="sub">기준 간격 120분 · 기본 시험 시간 120분 (설정에서 변경)</span><span class="sp"></span></header><div class="page"><div class="ovgrid">';
+ days.forEach(function(k){overlaps(k).forEach(function(o){var a=uOf(o.a),b=uOf(o.b);var lb=o.lv===2?'<span class="pill bad">⚠ 시간 충돌</span>':o.lv===1?'<span class="pill warn">⚠ 간격 주의</span>':'<span class="pill">참고 · 간격 충분</span>';
+  h+='<article class="card"><div style="display:flex;align-items:center;gap:10px"><h3 style="margin:0">'+md(k)+'</h3>'+lb+'<span class="sp"></span><span class="sub">'+dday(k)+'</span><button class="btn sec sm" data-a="sel" data-v="'+k+'">그날 보기</button></div><div class="ovpair">'+
+  [o.a,o.b].map(function(e,i){var y=uOf(e);return (i?'<div class="ovgap"><span class="num">'+Math.abs(o.gap)+'분</span>'+(o.gap<0?'겹침':'간격')+'</div>':'')+'<div class="ovside" style="--u:'+y.color+'"><b>'+esc(y.short)+' '+T[e.type][0]+'</b><span class="sub">입실 '+e.ci+' · '+e.st+'–'+e.et+'</span><br><span class="pill'+(y.pri==='first'?' ok':'')+'">우선순위 '+PRI[y.pri]+'</span></div>'}).join('')+'</div></article>'})});
+ return h+'</div></div>'}
+
+/* ---------- 내보내기 · 인쇄 · 설정 ---------- */
+function vExport(){var h='<header class="topbar"><h1>아이폰 캘린더로 내보내기(.ics)</h1><span class="sp"></span></header><div class="page"><div class="cols c2e">';
+ h+='<div class="card"><h4>내보낼 범위</h4><div class="opts" style="flex-direction:column;align-items:stretch"><label><input type="radio" name="er" checked> 전체 일정 ('+E.length+'개)</label><label><input type="radio" name="er"> 시험·면접만 ('+E.filter(timed).length+'개)</label><label><input type="radio" name="er"> 대학 하나</label><label><input type="radio" name="er"> 변경된 일정만 (마지막 내보내기 2026-12-10 이후 3개)</label></div><button class="btn pri block" style="margin-top:16px" data-a="toast" data-v="편입시험_2027_전체.ics 파일을 만들었습니다">'+ic('share',18)+'.ics 파일 내려받기</button></div>';
+ h+='<div class="card"><h4>알림과 안내</h4><div class="rows"><div class="row"><span class="k">시험·면접</span><span class="v">전날 20:00, 2시간 전</span><span></span></div><div class="row"><span class="k">마감 일정</span><span class="v">전날 09:00</span><span></span></div><div class="row"><span class="k">캘린더 이름</span><span class="v">편입 시험 2027</span><span></span></div></div><div class="warnbox" style="margin-top:12px">'+ic('warn',18)+'<span>같은 파일을 다시 가져오면 아이폰 캘린더에 중복으로 들어갈 수 있습니다. 두 번째부터는 "변경된 일정만"을 고르세요.</span></div></div>';
+ return h+'</div></div>'}
+function vPrint(){var h='<header class="topbar"><h1>A4 인쇄</h1><span class="sub">데스크톱 크롬 기준 · PDF로 저장해 편의점 출력도 가능</span><span class="sp"></span><button class="btn pri" data-a="toast" data-v="인쇄 창을 엽니다(구현 단계)">'+ic('print',18)+'인쇄</button></header><div class="page"><div class="cols c2e">';
+ h+='<div class="card"><h4>형식</h4><div class="opts"><label><input type="radio" name="po" checked> 세로형 · 한 달 한 장(4장)</label><label><input type="radio" name="po"> 가로형 · 두 달 한 장(2장)</label></div><div class="sec-t">인쇄할 달</div><div class="opts">'+MONTHS.map(function(m){return '<label><input type="checkbox" checked> '+(m[1]+1)+'월</label>'}).join('')+'</div><div class="sec-t">옵션</div><div class="opts"><label><input type="checkbox" checked> 전체 일정(끄면 시험·면접만)</label><label><input type="checkbox" checked> 수험 번호 표시</label><label><input type="checkbox"> 흑백</label></div></div>';
+ h+='<div class="card"><h4>미리보기</h4><p class="sub" style="margin:0">A4 인쇄 모양은 이미 확정한 <b>design-mockup.html</b>의 "A4 인쇄 미리보기"와 같습니다. 구현 단계에서는 이 자리에 실제 크기 미리보기가 들어갑니다.</p></div>';
+ return h+'</div></div>'}
+function vSettings(){var cur=document.documentElement.getAttribute('data-theme');var TT=[['wongoji','원고지','크림색 종이, 먹색 글씨, 파란 펜','IBM Plex Sans KR'],['planner','플래너','연보라 다이어리와 둥근 스티커','고운돋움 + 프리텐다드']];
+ var h='<header class="topbar"><h1>설정</h1><span class="sp"></span></header><div class="page"><div class="cols c2e">';
+ h+='<div class="card"><h4>테마 <span class="sub" style="font-weight:500">이 기기에만 저장됩니다. 기능은 두 테마가 같습니다.</span></h4><div class="themes" role="radiogroup" aria-label="테마">'+TT.map(function(t){var on=cur===t[0];return '<button class="tcard" role="radio" aria-checked="'+on+'" data-a="theme" data-v="'+t[0]+'"><div class="tprev" data-theme="'+t[0]+'"><span class="tt">편입 캘린더</span><span class="dn">D-3</span><span style="display:flex;gap:4px"><span class="chip fill" style="--u:#1D4ED8"><span class="s">●</span>건국</span><span class="chip line" style="--u:#047857"><span class="s">▲</span>한양</span></span></div><div class="tmeta"><b>'+t[1]+(on?' · 사용 중':'')+'</b><div>'+t[2]+' · '+t[3]+'</div></div></button>'}).join('')+'</div></div>';
+ h+='<div class="card"><h4>가족 공유</h4><div class="rows"><div class="row"><span class="k">가족 이름</span><span class="v">우리 가족</span><button class="mini">변경</button></div><div class="row"><span class="k">초대 코드</span><span class="v num">7KQ2M9XA</span><button class="mini" data-a="toast" data-v="초대 코드를 복사했습니다">복사</button></div><div class="row"><span class="k">구성원</span><span class="v">지우(자녀) · 엄마(부모)</span><span></span></div></div></div>';
+ h+='<div class="card"><h4>일정 기준</h4><div class="three"><div class="field"><label>겹침 기준 간격(분)</label><input type="number" value="120" inputmode="numeric"></div><div class="field"><label>기본 시험 시간(분)</label><input type="number" value="120" inputmode="numeric"></div><div class="field"><label>기본 여유 시간(분)</label><input type="number" value="30" inputmode="numeric"></div></div></div>';
+ h+='<div class="card"><h4>.ics 알림 · 계정</h4><div class="three"><div class="field"><label>시험 전날 알림</label><input type="time" value="20:00"></div><div class="field"><label>시험 당일(시간 전)</label><input type="number" value="2"></div><div class="field"><label>마감 전날 알림</label><input type="time" value="09:00"></div></div><div style="display:flex;gap:8px;margin-top:14px;align-items:center"><span class="sub">편입 캘린더(TExam Calendar) v0.1</span><span class="sp"></span><button class="btn sec sm">JSON 백업</button><button class="btn danger sm">로그아웃</button></div></div>';
+ return h+'</div></div>'}
+
+/* ---------- 렌더 ---------- */
+var V={cal:vCal,univs:vUnivs,univ:vUniv,uform:vUForm,docs:vDocs,overlap:vOverlap,export:vExport,print:vPrint,settings:vSettings};
+function render(){document.getElementById('app').innerHTML='<div class="app">'+vNav()+'<main class="main">'+V[S.view]()+'</main></div>';syncTool()}
+function syncTool(){var t=document.documentElement.getAttribute('data-theme');document.querySelectorAll('.mock-tool [data-a="theme"]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v===t)});document.getElementById('vw').textContent=innerWidth+'×'+innerHeight}
+var tt;function toast(m){var el=document.getElementById('toast');el.textContent=m;el.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){el.classList.remove('on')},1500)}
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('tcal.theme',t)}catch(e){}document.querySelector('meta[name="theme-color"]').setAttribute('content',t==='planner'?'#F3F0FA':'#F7F5F0')}
+function openForm(f){S.view='cal';S.panel='form';S.form=f;S.sel=f.date;S.m=monthOf(f.date);if(S.mode!=='1')S.open=true}
+function newForm(date,u){return {date:date,u:u==null?0:u,type:'exam',ci:'09:30',st:'10:00',et:'11:00',venue:'',memo:'',end:''}}
+
+document.addEventListener('click',function(ev){var t=ev.target.closest('[data-a]');if(!t)return;var a=t.dataset.a,v=t.dataset.v;
+ switch(a){
+ case 'nav':S.view=v;S.open=false;if(v==='cal')S.panel=S.panel==='form'?'form':'day';break;
+ case 'mon':S.m=Math.max(0,Math.min(3,+v));if(S.mode==='4')S.mode='1';break;
+ case 'mode':S.mode=v;S.open=false;break;
+ case 'filter':S.filter=v;break;
+ case 'sel':if(S.view!=='cal'){S.view='cal'}S.m=S.mode==='2'?Math.min(monthOf(v),S.m===monthOf(v)-1?S.m:monthOf(v)):monthOf(v);S.sel=v;
+  if(S.panel==='form'&&S.view==='cal'&&ev.target.closest('.grid')){S.form.date=v;if(S.form.end&&S.form.end<v)S.form.end=''}else S.panel='day';
+  if(S.mode!=='1')S.open=true;break;
+ case 'close':S.open=false;break;
+ case 'add':openForm(newForm(v||S.sel,S.view==='univ'?S.univ:0));break;
+ case 'addu':openForm(newForm(TODAY,+v));break;
+ case 'edit':var e=E[+v];openForm({id:e.id,date:e.date,end:e.end,u:e.u,type:e.type,ci:e.ci,st:e.st,et:e.et,memo:e.memo});break;
+ case 'cancel':S.panel='day';S.form=null;break;
+ case 'save':var f=S.form;if(f.date<'2026-11-01'||f.date>'2027-02-28'){toast('2026-11-01 ~ 2027-02-28 사이 날짜만 저장할 수 있습니다');return}
+  var rec={u:f.u,type:f.type,date:f.date,end:PERIOD[f.type]?f.end:'',ci:T[f.type][2]?f.ci:'',st:f.st,et:f.et||(T[f.type][2]&&f.st?hm(mins(f.st)+120):''),memo:f.memo};
+  if(f.id!=null){rec.id=f.id;E[f.id]=rec}else{rec.id=E.length;E.push(rec)}
+  toast(md(f.date)+(rec.ci?' '+rec.ci+' 입실':'')+' · '+U[f.u].short+' '+T[f.type][0]+' 일정을 저장했습니다');S.panel='day';S.form=null;S.sel=f.date;break;
+ case 'univ':S.view='univ';S.univ=+v;S.open=false;break;
+ case 'uform':S.view='uform';break;
+ case 'usave':toast('대학을 저장했습니다 · 기본 준비물 7개를 추가했습니다');S.view='univs';break;
+ case 'sort':if(S.sort===v)S.dir=-S.dir;else{S.sort=v;S.dir=1}break;
+ case 'docst':var p=v.split(':');DOCS[+p[0]].st=+p[1];break;
+ case 'reset':Object.keys(S.checked).forEach(function(k){S.checked[k]=false});U.forEach(function(x){CHECK.forEach(function(c,i){S.checked['c'+x.id+'_'+i]=false})});toast('준비물 체크를 초기화했습니다');break;
+ case 'theme':setTheme(v);break;
+ case 'toast':toast(v);return;
+ case 'swatch':t.parentNode.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed',b===t)});return;
+ case 'toc':var d=document.getElementById('sec-'+v);d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'});return;
+ default:return}
+ render()});
+document.addEventListener('change',function(ev){var t=ev.target;
+ if(t.dataset.chk){S.checked[t.dataset.chk]=t.checked;return}
+ if(t.dataset.f&&S.form){var k=t.dataset.f,v=t.value;if(k==='u'){if(v==='new'){S.view='uform';render();return}v=+v}S.form[k]=v;
+  if(k==='date'){S.sel=v;var mi=monthOf(v);if(mi>-1)S.m=mi}render();var el=document.querySelector('[data-f="'+k+'"]'+(k==='type'?':checked':''));if(el)el.focus()}});
+document.addEventListener('keydown',function(ev){
+ if(ev.key==='Escape'){if(S.open){S.open=false;render()}else if(S.panel==='form'){S.panel='day';S.form=null;render()}}
+ if(ev.key==='Enter'&&S.panel==='form'&&ev.target.closest('.panel')&&ev.target.tagName==='INPUT'){ev.preventDefault();document.querySelector('[data-a="save"]').click()}
+ if(ev.key==='Enter'&&ev.target.matches('tr[data-a]'))ev.target.click()});
+addEventListener('resize',syncTool);
+render();
+})();
+</script>
+</body>
+</html>
