@@ -151,7 +151,7 @@ export function CalendarPage() {
         <header className="topbar m-appbar">
           <h1>편입 캘린더</h1>
           <span className="sp" />
-          <Link className="icon-btn" to="/print" aria-label="인쇄·내보내기"><Icon name="print" size={22} /></Link>
+          <Link className="icon-btn" to="/print" aria-label="A4 인쇄"><Icon name="print" size={22} /></Link>
           <button className="icon-btn add" aria-label="일정 추가" onClick={() => setQuery({ add: '1', edit: null, d: sel })}>
             <Icon name="plus" size={24} />
           </button>

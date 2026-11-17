@@ -115,7 +115,7 @@ export function SettingsPage() {
                 <span />
               </div>
             </div>
-            <p className="sub" style={{ margin: '8px 0 0' }}>다른 가족은 Link Plan 계정으로 로그인한 뒤 이 초대 코드를 입력하면 같은 달력을 봅니다.</p>
+            <p className="sub" style={{ margin: '8px 0 0' }}>다른 가족 구성원은 Link Plan 계정으로 로그인한 뒤 이 초대 코드를 입력하면 같은 달력을 봅니다.</p>
           </div>
 
           <div className="card">
@@ -141,7 +141,7 @@ export function SettingsPage() {
           <SampleDataCard />
 
           <div className="card">
-            <h4>계정 · 앱 정보</h4>
+            <h4>계정·앱 정보</h4>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <span className="sub">편입 캘린더(TExam Calendar) v0.1</span>
               <span className="sp" />

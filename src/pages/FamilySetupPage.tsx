@@ -35,7 +35,7 @@ export function FamilySetupPage({ userId }: { userId: string }) {
     <div className="auth">
       <div className="auth-hero">
         <h1>가족과 함께 보기</h1>
-        <p>먼저 가족을 만들면 8자리 초대 코드가 생깁니다. 다른 가족은 그 코드로 들어와 같은 달력을 봅니다.</p>
+        <p>먼저 가족을 만들면 8자리 초대 코드가 생깁니다. 다른 가족 구성원은 그 코드로 들어와 같은 달력을 봅니다.</p>
       </div>
       <div className="auth-form">
         <form onSubmit={submit}>

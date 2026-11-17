@@ -11,7 +11,7 @@ export function MorePage() {
   const nConflict = bad.filter(([, lv]) => lv === 'conflict').length;
   const theme = THEMES.find((t) => t.id === getSavedTheme())!;
   const items: [string, IconName, string, string][] = [
-    ['/settings', 'gear', '테마 · 설정', `테마: ${theme.name} · 겹침 기준 ${f.family.settings.overlap_gap_min}분`],
+    ['/settings', 'gear', '테마·설정', `테마: ${theme.name} · 겹침 기준 ${f.family.settings.overlap_gap_min}분`],
     ['/overlap', 'warn', '겹치는 일정', bad.length ? `충돌 ${nConflict} · 주의 ${bad.length - nConflict}` : '겹치는 시험 없음'],
     ['/export', 'share', '아이폰 캘린더로 내보내기(.ics)', '전체 · 대학별 · 시험·면접만'],
     ['/print', 'print', 'A4 인쇄', '세로형 한 달 한 장 · 가로형 두 달 한 장'],

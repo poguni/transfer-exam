@@ -83,7 +83,7 @@ export function PrintPage() {
     <>
       <header className="topbar">
         <h1>A4 인쇄</h1>
-        <span className="sub">데스크톱 크롬 기준 · 인쇄 창에서 "PDF로 저장"하면 편의점 출력도 됩니다</span>
+        <span className="sub">데스크톱 크롬 기준 · 인쇄 창에서 "PDF로 저장"하면 편의점에서도 출력할 수 있습니다</span>
         <span className="sp" />
         <button className="btn pri" onClick={() => window.print()} disabled={!sheets}>
           <Icon name="print" size={18} />
