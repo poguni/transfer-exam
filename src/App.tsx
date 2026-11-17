@@ -69,13 +69,13 @@ function Shell() {
   return (
     <div className="app">
       <nav className="nav" aria-label="주 메뉴">
-        <div className="brand">
+        <Link className="brand" to="/" aria-label="편입 캘린더 달력으로" title="달력으로">
           <span className="logo" aria-hidden="true">편</span>
           <div className="t">
             <b>편입 캘린더</b>
             <small>TExam Calendar · 2027</small>
           </div>
-        </div>
+        </Link>
         {NAV.map((n, i) =>
           n ? (
             <NavLink key={n.to} to={n.to} end={n.end} title={n.label} className={({ isActive }) => 'ni' + (isActive ? ' active' : '')}>
