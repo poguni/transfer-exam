@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { useFamily } from '../app/state';
 import { THEMES, getSavedTheme } from '../lib/themes';
-import { supabase } from '../lib/supabase';
+import { signOut } from '../lib/offline';
 import { Icon, type IconName } from '../ui/Icon';
 
 /** 모바일 더보기: 인쇄·내보내기·겹침·설정으로 가는 목록 (DESIGN 7장) */
@@ -45,7 +45,7 @@ export function MorePage() {
             </span>
             <span />
           </div>
-          <button className="li" onClick={() => supabase.auth.signOut()}>
+          <button className="li" onClick={() => signOut()}>
             <span className="ab soft"><Icon name="logout" /></span>
             <span className="n">로그아웃</span>
             <span />

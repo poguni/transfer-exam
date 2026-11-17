@@ -1,0 +1,16 @@
+{
+  "name": "편입 캘린더(TExam Calendar)",
+  "short_name": "편입 캘린더",
+  "description": "2027학년도 편입 시험 일정을 11월~2월 달력으로 관리하는 가족용 앱",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F7F5F0",
+  "theme_color": "#F7F5F0",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

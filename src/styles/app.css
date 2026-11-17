@@ -285,5 +285,6 @@ table.tbl { width: 100%; border-collapse: collapse; }
 .auth-form h2 { font-family: var(--font-display); font-weight: var(--display-w); font-size: 24px; }
 @media (max-width: 1023px) { .auth { grid-template-columns: minmax(0, 1fr); } .auth-hero { padding: 32px 24px; } .auth-hero h1 { font-size: 30px; } }
 
+.offline-bar { position: fixed; top: calc(8px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 60; max-width: calc(100vw - 24px); padding: 6px 14px; border-radius: 999px; background: var(--warn-soft); color: var(--warn); font-size: 12.5px; font-weight: 600; box-shadow: var(--shadow); text-align: center; }
 .toast { position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%); z-index: 70; background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: var(--r); font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .toast.on { opacity: 1; }

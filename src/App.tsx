@@ -42,7 +42,8 @@ function AuthGate() {
 function MembershipGate({ userId }: { userId: string }) {
   const m = useMembership(userId);
   if (m.isPending) return <FullMessage title="불러오는 중…" />;
-  if (m.error) return <FullMessage title="가족 정보를 불러오지 못했습니다" body={m.error.message} />;
+  // 보관본이 있으면 연결이 안 되어도 계속 보여 줌
+  if (m.error && !m.data) return <FullMessage title="가족 정보를 불러오지 못했습니다" body={m.error.message} />;
   if (!m.data) return <FamilySetupPage userId={userId} />;
   return (
     <FamilyProvider userId={userId} membership={m.data}>

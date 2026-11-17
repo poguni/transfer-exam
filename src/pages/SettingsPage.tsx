@@ -1,8 +1,8 @@
 import { useState, type ChangeEvent } from 'react';
 import { useFamily } from '../app/state';
-import { copyText } from '../lib/browser';
+import { copyText, saveFile } from '../lib/browser';
 import { updateFamily } from '../lib/db';
-import { supabase } from '../lib/supabase';
+import { signOut } from '../lib/offline';
 import { applyTheme, getSavedTheme, THEMES, type ThemeId } from '../lib/themes';
 import { Icon } from '../ui/Icon';
 import { useToast } from '../ui/toast';
@@ -15,6 +15,22 @@ export function SettingsPage() {
   const [name, setName] = useState(f.family.name);
   const [st, setSt] = useState({ ...f.family.settings });
   const [busy, setBusy] = useState(false);
+
+  /** 가족 데이터 전체를 JSON 파일로 (PRD F12) */
+  async function backup() {
+    const data = {
+      app: 'TExam Calendar',
+      exportedAt: new Date().toISOString(),
+      family: f.family,
+      members: f.members,
+      universities: f.universities,
+      events: f.events,
+      documents: f.documents,
+      checklist: f.checklist,
+    };
+    await saveFile(`편입캘린더_백업_${f.today}.json`, JSON.stringify(data, null, 2), 'application/json');
+    toast('백업 파일을 만들었습니다');
+  }
 
   function pick(id: ThemeId) {
     applyTheme(id);
@@ -126,7 +142,8 @@ export function SettingsPage() {
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <span className="sub">편입 캘린더(TExam Calendar) v0.1</span>
               <span className="sp" />
-              <button className="btn danger sm" onClick={() => supabase.auth.signOut()}>
+              <button className="btn sec sm" onClick={backup}>JSON 백업</button>
+              <button className="btn danger sm" onClick={() => signOut()}>
                 <Icon name="logout" size={16} />
                 로그아웃
               </button>

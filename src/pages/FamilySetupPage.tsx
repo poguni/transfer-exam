@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { createFamily, joinFamily } from '../lib/db';
-import { supabase } from '../lib/supabase';
+import { signOut } from '../lib/offline';
 import type { Member } from '../lib/types';
 
 /** 처음 로그인: 가족 만들기 또는 초대 코드로 참여 (PRD F1-2) */
@@ -67,7 +67,7 @@ export function FamilySetupPage({ userId }: { userId: string }) {
           </div>
           {error && <div className="warnbox d" role="alert">{error}</div>}
           <button className="btn pri block" disabled={busy}>{mode === 'create' ? '가족 만들기' : '참여하기'}</button>
-          <button type="button" className="btn ghost" onClick={() => supabase.auth.signOut()}>로그아웃</button>
+          <button type="button" className="btn ghost" onClick={() => signOut()}>로그아웃</button>
         </form>
       </div>
     </div>

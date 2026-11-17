@@ -28,7 +28,9 @@
 - 화면 확인은 Playwright로 데스크톱(1920×1080, 1440×900, 1280×800)과 `iPhone 15 Pro`(393×852)에서 한다.
 - 인쇄 화면은 Playwright `page.pdf({ format: 'A4' })`로 확인한다.
 - 화면 흐름 확인은 `npm run build` 후 Playwright MCP `browser_run_code`에 `tests/e2e/mock-backend.pw.js`(가짜 Supabase + dist 제공)를 실행하고 `http://app.local/`을 연다. 로그인은 아무 이메일 + 비밀번호(`wrong`이면 실패)로 한다.
-- 배포는 GitHub Pages(정적 SPA). Vite `base` 경로와 SPA 경로 처리(404.html 또는 해시 라우팅)를 고려한다.
+- 배포는 GitHub Pages(`.github/workflows/deploy.yml`). 화면 이동은 해시 라우팅(`HashRouter`)이고 Vite `base`는 `'./'`(상대 경로)라서 저장소 이름과 상관없이 동작한다. 정적 파일은 `public/`(매니페스트, 아이콘, `sw.js`)에 둔다.
+- 실시간 반영은 Supabase Realtime **Broadcast**(`tcal-family-<id>` 채널, 데이터 없는 "changed" 신호)로 한다. DB publication은 바꾸지 않는다.
+- 오프라인용으로 마지막 데이터를 `localStorage`(`tcal.cache.v1.*`)에 보관하고, 로그아웃하면 지운다(`lib/offline.ts`의 `signOut`).
 
 ## Git
 - **Git·GitHub 작업은 사용자가 직접 한다.** Claude는 `git` 명령을 실행하지 않고, 작업 단계가 끝날 때 커밋하기 좋은 시점과 커밋 메시지(한국어)만 알려 준다.
