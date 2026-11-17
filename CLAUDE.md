@@ -18,6 +18,8 @@
 - `auth.users`에는 Link Plan의 `on_auth_user_created` 트리거(→ `private.handle_new_user`, `profiles` 생성)가 있다. 이 앱은 회원가입을 하지 않고, `auth.users`에 트리거를 달지 않는다.
 - 로그인은 이메일 + 비밀번호(Link Plan과 같음).
 - 스키마 변경은 반드시 `supabase/migrations/`의 SQL 파일로 남긴다.
+- 이 프로젝트는 **새 테이블에 `anon`·`authenticated` 데이터 권한을 자동으로 주지 않는다.** 새 `tcal_` 테이블을 만들면 `authenticated`에 필요한 권한만 `grant`하고, `anon`에는 주지 않는다(`20261117000100_tcal_grants.sql` 참고).
+- RLS 검증은 `do $$ ... raise exception 'RESULT: %' ... $$` 블록 안에서 `set local role authenticated` + `request.jwt.claims`로 사용자를 바꿔 확인하고, 마지막 예외로 전부 되돌린다(운영 DB에 테스트 데이터를 남기지 않음).
 - 클라이언트에는 anon(공개) 키만 쓴다. service_role 키는 어디에도 넣지 않는다.
 
 ## 구현 규칙
@@ -25,6 +27,7 @@
 - 컴포넌트는 디자인 토큰(CSS 변수)만 참조한다. 테마는 `<html data-theme="wongoji|planner">`.
 - 화면 확인은 Playwright로 데스크톱(1920×1080, 1440×900, 1280×800)과 `iPhone 15 Pro`(393×852)에서 한다.
 - 인쇄 화면은 Playwright `page.pdf({ format: 'A4' })`로 확인한다.
+- 화면 흐름 확인은 `npm run build` 후 Playwright MCP `browser_run_code`에 `tests/e2e/mock-backend.pw.js`(가짜 Supabase + dist 제공)를 실행하고 `http://app.local/`을 연다. 로그인은 아무 이메일 + 비밀번호(`wrong`이면 실패)로 한다.
 - 배포는 GitHub Pages(정적 SPA). Vite `base` 경로와 SPA 경로 처리(404.html 또는 해시 라우팅)를 고려한다.
 
 ## Git

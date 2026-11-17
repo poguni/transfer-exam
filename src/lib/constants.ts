@@ -48,6 +48,27 @@ export const UNIV_COLORS = [
   '#B45309', '#475569', '#A21CAF', '#4D7C0F', '#7C2D12', '#4338CA',
 ] as const;
 
+export const PRIORITY_LABEL = { first: '1지망', reach: '상향', target: '적정', safe: '안정' } as const;
+export const PRIORITY_ORDER = { first: 0, reach: 1, target: 2, safe: 3 } as const;
+export const AGENCY_LABEL = { jinhak: '진학어플라이', uway: '유웨이', school: '대학 자체' } as const;
+export const EXAM_TYPE_LABEL = { english: '영어', interview: '면접', document: '서류 평가' } as const;
+export const RESULT_LABEL = {
+  pending: '대기',
+  first_pass: '1단계 합격',
+  final_pass: '최종 합격',
+  waitlist: '예비',
+  fail: '불합격',
+} as const;
+export const DOC_TYPE_LABEL = {
+  study_plan: '학업 계획서',
+  self_intro: '자기소개서',
+  transcript: '대학 성적 증명서',
+  completion_cert: '수료·졸업 예정 증명서',
+  other: '기타',
+} as const;
+export const DOC_STATUS_LABEL = { todo: '준비 중', ready: '발급·작성 완료', submitted: '제출 완료' } as const;
+export const SUBMIT_METHOD_LABEL = { upload: '온라인 업로드', mail: '우편', visit: '방문' } as const;
+
 /** 대학 등록 시 자동으로 넣는 준비물 (PRD 4.8 G) */
 export const DEFAULT_CHECKLIST = [
   '수험표(2~3장 출력)',
