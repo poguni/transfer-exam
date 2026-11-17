@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>편입 캘린더(TExam Calendar) 개발 보고서 (v1)</title>
+<style>
+  /* 말랑(cute) 테마 — Reading Diary 앱의 디자인 토큰에서 가져옴. 모든 개발 보고서가 같은 모양을 쓴다. */
+  :root {
+    --sidebar-w: 268px;
+    --bg: #FFF3EA; --surface: #FFFFFF; --surface-2: #FFF0F3;
+    --ink: #45303C; --ink-2: #86606F; --line: #F6D9E1;
+    --primary: #CF3D67; --primary-text: #C0365E; --focus: #C0365E;
+    --radius: 24px; --radius-sm: 16px;
+    --shadow: 0 4px 0 #F6DCCF;
+    --side-active-bg: #FFE3EA; --side-active-ink: #B8325A;
+    --brand-bg: #FFD3DE; --brand-ink: #B8325A;
+    --quote-bg: #E6F8F0; --quote-line: #BFEBD8; --quote-ink: #23453A;
+    --timer-bg: #FFE7A6; --timer-line: #F5D27A;
+    --font-display: "Gowun Dodum", "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --font-ui: "Pretendard Variable", "Pretendard", -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: var(--font-ui); font-size: 15px; line-height: 1.7; color: var(--ink);
+    background-color: var(--bg);
+    background-image: radial-gradient(#F6D8C8 1.3px, transparent 1.6px); background-size: 22px 22px;
+    word-break: keep-all; overflow-wrap: anywhere;
+  }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* 왼쪽 패널: 둥근 흰 카드 + 알약 모양 메뉴 */
+  nav.sidebar {
+    position: sticky; top: 16px; align-self: flex-start; width: var(--sidebar-w); flex-shrink: 0;
+    height: calc(100vh - 32px); overflow-y: auto; margin: 16px 0 16px 16px; padding: 22px 14px;
+    background: var(--surface); border: 2px solid #F8DCE4; border-radius: 28px; box-shadow: 0 5px 0 #F6DCCF;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 4px; }
+  .brand-mark { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--brand-bg); color: var(--brand-ink); flex: none; }
+  .brand-mark svg { width: 22px; height: 22px; }
+  nav.sidebar h1 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 18px; line-height: 1.25; }
+  nav.sidebar h1 small { display: block; font-family: var(--font-ui); font-size: 11.5px; font-weight: 700; color: var(--ink-2); }
+  nav.sidebar .meta { margin: 10px 8px 14px; padding: 6px 12px; border-radius: 999px; background: var(--timer-bg); font-size: 12px; font-weight: 700; color: #6A4A12; display: inline-block; transform: rotate(-1.5deg); }
+  nav.sidebar .links { display: flex; flex-direction: column; gap: 2px; }
+  nav.sidebar a {
+    display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 7px 12px; border-radius: 999px;
+    font-size: 13.5px; font-weight: 600; color: var(--ink); text-decoration: none;
+  }
+  nav.sidebar a .num { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--surface-2); color: var(--ink-2); font-size: 11.5px; font-weight: 800; flex: none; }
+  nav.sidebar a:hover { background: var(--surface-2); }
+  nav.sidebar a.active { background: var(--side-active-bg); color: var(--side-active-ink); }
+  nav.sidebar a.active .num { background: var(--primary); color: #fff; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .nav-toggle { display: none; }
+
+  /* 본문 */
+  main { flex: 1; min-width: 0; padding: 32px 40px 80px; max-width: 980px; }
+  .hero { position: relative; margin: 8px 0 32px; padding: 30px 32px 26px; background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .hero::before { content: ""; position: absolute; top: -12px; left: 50%; width: 120px; height: 26px; margin-left: -60px; background: rgba(255,190,210,.75); transform: rotate(-4deg); border-radius: 3px; }
+  .hero h1 { margin: 0 0 12px; font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.3; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 4px 12px; border-radius: 999px; background: var(--quote-bg); border: 1.5px solid var(--quote-line); color: var(--quote-ink); font-size: 13px; font-weight: 700; }
+
+  main section.card { margin-bottom: 28px; padding: 26px 30px 22px; background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); scroll-margin-top: 24px; }
+  main h2 { margin: 0 0 14px; padding-bottom: 10px; font-family: var(--font-display); font-weight: 400; font-size: 23px; border-bottom: 2px dashed var(--line); }
+  main h3 { margin: 22px 0 8px; font-size: 16.5px; color: var(--primary-text); }
+  main p { margin: 10px 0; }
+  main ul, main ol { margin: 8px 0 12px; padding-left: 22px; }
+  main li { margin: 4px 0; }
+  main li::marker { color: var(--primary); }
+  main strong { color: var(--primary-text); }
+  .table-wrap { overflow-x: auto; margin: 12px 0; border: 2px solid var(--line); border-radius: var(--radius-sm); }
+  main table { border-collapse: collapse; width: 100%; }
+  main th, main td { padding: 9px 12px; font-size: 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+  main th { background: var(--surface-2); font-weight: 700; white-space: nowrap; }
+  main tr:last-child td { border-bottom: 0; }
+  main td + td, main th + th { border-left: 1px solid var(--line); }
+  main code { background: var(--quote-bg); color: var(--quote-ink); padding: 1px 6px; border-radius: 6px; font-size: 0.88em; }
+  main pre { background: #FFF8E1; border: 2px solid var(--timer-line); color: var(--ink); padding: 16px 18px; border-radius: var(--radius-sm); overflow-x: auto; line-height: 1.55; box-shadow: 0 4px 0 #EFC765; }
+  main pre code { background: none; color: inherit; padding: 0; font-size: 13px; }
+  .foot { text-align: center; color: var(--ink-2); font-size: 12.5px; }
+
+  @media (max-width: 860px) {
+    .layout { flex-direction: column; }
+    nav.sidebar { position: sticky; top: 0; z-index: 5; align-self: stretch; width: auto; height: auto; max-height: 100vh; margin: 0; padding: 10px 16px; border-radius: 0 0 24px 24px; border-top: 0; }
+    .brand { padding: 0; }
+    nav.sidebar .meta { display: none; }
+    .nav-toggle { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; min-height: 44px; padding: 0 16px; border: 2px solid var(--line); border-radius: 999px; background: var(--surface-2); color: var(--ink); font: 700 13.5px var(--font-ui); cursor: pointer; }
+    nav.sidebar .links { display: none; margin-top: 10px; }
+    nav.sidebar.open .links { display: flex; }
+    main { padding: 20px 16px 60px; }
+    .hero { padding: 24px 20px 20px; }
+    .hero h1 { font-size: 24px; }
+    main section.card { padding: 20px 18px 16px; scroll-margin-top: 80px; }
+  }
+  @media print {
+    body { background: #fff; }
+    nav.sidebar { display: none; }
+    main { max-width: none; padding: 0; }
+    main section.card, .hero { box-shadow: none; break-inside: avoid-page; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar" id="sidebar" aria-label="목차">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+      </span>
+      <h1>편입 캘린더<small>TExam Calendar</small></h1>
+      <button type="button" class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navLinks">목차</button>
+    </div>
+    <div class="meta">개발 보고서 v1 · 2026-11-17</div>
+    <div class="links" id="navLinks">
+      <a href="#sec-1"><span class="num">1</span>개요</a>
+      <a href="#sec-2"><span class="num">2</span>목표 및 배경</a>
+      <a href="#sec-3"><span class="num">3</span>주요 기능</a>
+      <a href="#sec-4"><span class="num">4</span>기술 스택 및 아키텍처</a>
+      <a href="#sec-5"><span class="num">5</span>개발 과정 (타임라인)</a>
+      <a href="#sec-6"><span class="num">6</span>주요 의사결정과 이유</a>
+      <a href="#sec-7"><span class="num">7</span>문제 해결 기록</a>
+      <a href="#sec-8"><span class="num">8</span>보안/성능 고려사항</a>
+      <a href="#sec-9"><span class="num">9</span>테스트 및 검증</a>
+      <a href="#sec-10"><span class="num">10</span>배포</a>
+      <a href="#sec-11"><span class="num">11</span>알려진 한계</a>
+      <a href="#sec-12"><span class="num">12</span>향후 개선 아이디어 / 업데이트 계획</a>
+    </div>
+  </nav>
+  <main id="content">
+    <header class="hero">
+      <h1>편입 캘린더(TExam Calendar) 개발 보고서 (v1)</h1>
+      <div class="chips"><span class="chip">작성일: 2026-11-17</span><span class="chip">버전: v1</span></div>
+    </header>
+    <section id="sec-1" class="card">
+      <h2>1. 개요</h2>
+<div class="table-wrap"><table><thead><tr><th>항목</th><th>내용</th></tr></thead><tbody><tr><td>앱 이름</td><td>편입 캘린더(TExam Calendar)</td></tr><tr><td>한 줄 소개</td><td>2027학년도 대학 편입 시험 일정을 2026년 11월 ~ 2027년 2월 4개월 달력 한 곳에서 관리하는 가족용 웹 앱</td></tr><tr><td>대상 사용자</td><td>편입 준비생(자녀) 1명과 부모. 같은 데이터를 각자의 기기에서 봄</td></tr><tr><td>사용 방식</td><td>입력은 주로 데스크톱, 아이폰은 확인용(시험 당일 정보, D-day)</td></tr><tr><td>배포 주소</td><td>https://poguni.github.io/transfer-exam/ (GitHub Pages)</td></tr><tr><td>개발 기간</td><td>2026-11-15 기획 문서·디자인 시안 준비, 2026-11-16 ~ 11-17 분석·구현</td></tr></tbody></table></div>
+    </section>
+    <section id="sec-2" class="card">
+      <h2>2. 목표 및 배경</h2>
+<p>편입 시험은 12월부터 이듬해 1월까지 치르고, 수험생 한 명이 10곳 넘게 지원하는 일이 흔합니다. 대학마다 원서 접수, 필기시험, 1단계 발표, 서류 제출, 면접, 최종 발표, 등록, 충원 일정이 따로 있고, 같은 날 오전·오후로 두 대학 시험이 겹치기도 합니다. 일정과 수험 번호, 시험 장소, 교통 정보가 대학 홈페이지와 원서 접수 사이트에 흩어져 있어 한눈에 보기 어렵습니다.</p>
+<p>이 앱이 지향하는 핵심 가치는 다음과 같습니다.</p>
+<ul><li>11월 ~ 2월 모든 일정을 달력 한 곳에서 보기</li><li>시험 당일 화면 하나로 입실 시각·권장 출발 시각·수험 번호·장소·준비물 확인</li><li>다음 시험까지 남은 날(D-day)과 일정 겹침을 자동으로 알려 주기</li><li>아이폰 캘린더 알림(.ics), A4 인쇄(벽에 붙이기)</li><li>자녀와 부모가 같은 데이터를 함께 보기</li></ul>
+    </section>
+    <section id="sec-3" class="card">
+      <h2>3. 주요 기능</h2>
+<div class="table-wrap"><table><thead><tr><th>기능</th><th>내용</th><th>PRD</th></tr></thead><tbody><tr><td>로그인·가족 공유</td><td>Link Plan과 같은 이메일·비밀번호 계정, 가족 만들기와 8자리 초대 코드로 참여, 같은 가족만 데이터 조회</td><td>F1</td></tr><tr><td>대학 관리</td><td>A~H 섹션 입력 폼(화면 폭 전체), 지원 현황 표(정렬·검색·요약 타일), 대학 상세 3열, 대학 삭제 시 일정·서류·준비물 함께 삭제</td><td>F2</td></tr><tr><td>일정 입력</td><td>오른쪽 패널에서 달력을 보면서 입력, 입력 중 달력 칸을 누르면 날짜 변경, 겹침 미리 보기, 저장 후 24시간 표기 확인 문구</td><td>F3</td></tr><tr><td>달력</td><td>1·2·4개월 보기, 필터(전체·시험면접·마감), 대학별 표시 끄기, 공휴일, 넓은 칸은 종류·시각까지 표시</td><td>F4</td></tr><tr><td>날짜 상세</td><td>일정 카드(입실·시작~종료·권장 출발, 수험 번호 복사, 지도, 전화, 준비물 체크, 캘린더에 추가)</td><td>F5</td></tr><tr><td>D-day</td><td>다가오는 시험·면접 카드 줄, 서울 날짜 기준</td><td>F6</td></tr><tr><td>겹침 경고</td><td>충돌(빨강)·주의(주황)·참고 3등급, 달력 칸 경고 표시, 겹침 목록에 두 대학 우선순위 함께 표시</td><td>F7</td></tr><tr><td>.ics 내보내기</td><td>전체·시험면접·대학 하나·변경된 일정만, 알림(전날·시작 전·마감 전날), RFC 5545</td><td>F8</td></tr><tr><td>A4 인쇄</td><td>세로형(한 달 한 장)·가로형(두 달 한 장), 인쇄할 달 선택, 시험만·수험 번호·흑백 옵션, 범례 표</td><td>F9</td></tr><tr><td>서류·준비물</td><td>미제출 서류를 마감 순으로, 진행 상태 3단계, 다음 시험 준비물 체크·초기화</td><td>F10</td></tr><tr><td>설정</td><td>테마, 가족 이름·초대 코드, 겹침 기준·기본 시험 시간·여유 시간, .ics 알림 시각</td><td>F11</td></tr><tr><td>JSON 백업</td><td>가족 데이터 전체를 파일로</td><td>F12</td></tr><tr><td>테마</td><td>원고지(기본)·플래너 2종, 기기마다 저장, 깜빡임 없음</td><td>F13</td></tr><tr><td>반응형</td><td>데스크톱 우선, 1024px 미만은 하단 탭·바텀 시트·월 탭과 좌우 밀기</td><td>6장</td></tr><tr><td>PWA·오프라인</td><td>홈 화면 추가, 서비스 워커, 마지막 데이터 기기 보관과 안내 막대</td><td>10장</td></tr><tr><td>실시간 반영</td><td>한 기기에서 저장하면 가족의 다른 기기가 바로 다시 불러옴</td><td>F1-5</td></tr><tr><td>테스트 데이터</td><td>설정에서 서울·수도권 8개 대학 가상 일정 넣기와 일괄 삭제</td><td>추가</td></tr></tbody></table></div>
+    </section>
+    <section id="sec-4" class="card">
+      <h2>4. 기술 스택 및 아키텍처</h2>
+<div class="table-wrap"><table><thead><tr><th>영역</th><th>선택</th><th>이유</th></tr></thead><tbody><tr><td>프레임워크</td><td>React 19 + TypeScript 7 + Vite 8</td><td>화면이 여러 개이고 상태가 얽혀 컴포넌트 구조가 편함. 정적 파일로 배포 가능</td></tr><tr><td>화면 이동</td><td>React Router 8 <code>HashRouter</code></td><td>GitHub Pages에서 새로고침해도 404가 나지 않음</td></tr><tr><td>스타일</td><td>CSS 변수(디자인 토큰) + 컴포넌트 CSS, Tailwind 4 <code>@theme</code> 연결</td><td>테마는 <code>data-theme</code> 속성 하나로 토큰만 교체</td></tr><tr><td>서버 상태</td><td>TanStack Query 5</td><td>캐시, 다시 불러오기, 창 포커스 시 갱신</td></tr><tr><td>날짜</td><td>date-fns 4 + <code>@date-fns/tz</code></td><td>서울 날짜 계산을 함수 단위로 테스트</td></tr><tr><td>백엔드</td><td>Supabase(기존 Link Plan 프로젝트 공유)</td><td>로그인 계정 공유, DB·RLS·Realtime 한 번에</td></tr><tr><td>테스트</td><td>Vitest 5(계산 함수), Playwright(화면·PDF)</td><td>계산 규칙은 단위 테스트, 화면은 가짜 백엔드로 흐름 확인</td></tr><tr><td>배포</td><td>GitHub Pages + GitHub Actions</td><td>무료·HTTPS, 사용자가 직접 관리하는 저장소</td></tr></tbody></table></div>
+<h3>폴더 구조</h3>
+<pre><code>TExam Calendar/
+├── CLAUDE.md                     작업 규칙(문서 위치, 화면 원칙, Supabase 보호, Git은 사용자)
+├── docs/                         PRD, 개발 보고서
+├── design/                       DESIGN.md, 모바일 시안, 데스크톱 시안
+├── supabase/migrations/          tcal_ 스키마 3개(초기, 권한, 테스트 표시)
+├── public/                       매니페스트, 아이콘, 서비스 워커
+├── src/
+│   ├── lib/                      순수 계산(date, schedule, overlap, ics, labels), db, offline, themes
+│   ├── app/state.tsx             로그인·가족 데이터·실시간·오프라인 상태
+│   ├── pages/                    달력, 대학, 서류, 겹침, 내보내기, 인쇄, 설정, 더보기
+│   ├── ui/                       아이콘, 토스트, 바텀 시트, useMobile
+│   └── styles/                   themes, app, mobile, print
+├── tests/unit/                   Vitest 54개
+├── tests/e2e/mock-backend.pw.js  화면 확인용 가짜 Supabase
+└── .github/workflows/deploy.yml  테스트 → 빌드 → Pages 배포</code></pre>
+<h3>데이터 모델 (Supabase, 접두사 tcal_)</h3>
+<div class="table-wrap"><table><thead><tr><th>테이블</th><th>내용</th></tr></thead><tbody><tr><td>tcal_families</td><td>가족, 초대 코드, 가족 공유 설정(jsonb)</td></tr><tr><td>tcal_family_members</td><td>구성원(자녀/부모), 표시 이름</td></tr><tr><td>tcal_universities</td><td>지원 대학(A~H 항목), 테스트 표시 <code>is_sample</code></td></tr><tr><td>tcal_events</td><td>일정 10종(서울 날짜·시각을 date·time으로 따로 저장)</td></tr><tr><td>tcal_documents</td><td>준비 서류와 진행 상태</td></tr><tr><td>tcal_checklist_items</td><td>시험 당일 준비물</td></tr></tbody></table></div>
+<ul><li>모든 테이블에 RLS를 걸고, 같은 가족만 읽고 쓰게 했습니다(<code>tcal_is_member</code> 함수).</li><li>가족 만들기와 초대 코드 참여는 <code>security definer</code> 함수(<code>tcal_create_family</code>, <code>tcal_join_family</code>)로만 합니다.</li><li>수정 시각·수정한 사람 자동 기록, 하위 테이블의 가족 일치 검사 트리거를 두었습니다.</li></ul>
+    </section>
+    <section id="sec-5" class="card">
+      <h2>5. 개발 과정 (타임라인)</h2>
+<div class="table-wrap"><table><thead><tr><th>단계</th><th>내용</th><th>결과</th></tr></thead><tbody><tr><td>0. 분석·계획</td><td>PRD v0.3, DESIGN v0.2, 모바일 시안 분석. 데스크톱 우선·전체 폭 원칙과 결정 사항 정리</td><td>구현 계획, 결정 질문 7개</td></tr><tr><td>1. 데스크톱 시안</td><td>1개월 달력 + 오른쪽 패널, 지원 현황 표, 대학 등록 전체 폭 폼 등을 정적 HTML로 확인</td><td>design/desktop-mockup.html, CLAUDE.md</td></tr><tr><td>2. 기반·계산 로직</td><td>Vite 프로젝트, 디자인 토큰, D-day·겹침·권장 출발·.ics·달력 칸 함수와 단위 테스트, 마이그레이션 초안</td><td>단위 테스트 40개</td></tr><tr><td>3. DB 적용</td><td>Link Plan에 tcal_ 스키마 적용, 권한 누락 발견·추가, RLS 15항목 검증(되돌림 방식)</td><td>마이그레이션 2개</td></tr><tr><td>4. 데스크톱 앱</td><td>로그인·가족, 왼쪽 메뉴, 달력·패널·일정 입력, 대학 관리, 겹침 목록, 설정</td><td>가짜 백엔드로 흐름 확인</td></tr><tr><td>5. 아이폰 반응형</td><td>하단 탭, 바텀 시트(끌어서 닫기·초점 관리), 월 탭·좌우 밀기, 카드 목록, 더보기</td><td>393×852에서 한 달 스크롤 없이 표시</td></tr><tr><td>6. 남은 화면</td><td>서류·준비물, .ics 내보내기, A4 인쇄(PDF 확인), 알림 시각 설정</td><td>단위 테스트 50개</td></tr><tr><td>7. 마무리(M7)</td><td>GitHub Pages 워크플로, PWA·서비스 워커, 오프라인 데이터 보관, 실시간 반영, JSON 백업</td><td>배포</td></tr><tr><td>8. 운영 대응</td><td>왼쪽 위 로고로 달력 이동, 빈 화면 배포 원인 분석·안전장치, 테스트 데이터 넣기·일괄 삭제</td><td>단위 테스트 54개</td></tr></tbody></table></div>
+    </section>
+    <section id="sec-6" class="card">
+      <h2>6. 주요 의사결정과 이유</h2>
+<div class="table-wrap"><table><thead><tr><th>결정</th><th>이유</th></tr></thead><tbody><tr><td>데스크톱을 먼저 만들고 반응형으로 아이폰까지</td><td>입력은 주로 데스크톱, 아이폰은 확인용이라는 사용 방식(사용자 결정)</td></tr><tr><td>데스크톱은 화면 전체 폭 사용, max-width 틀 금지</td><td>가운데 몰리고 좌우가 비는 화면을 피하기 위해(사용자 요청). 달력 칸·표·폼이 폭에 맞춰 늘어남</td></tr><tr><td>달력 기본 보기는 1개월 크게 + 오른쪽 패널</td><td>사용자 선택. 넓은 칸에 "●건국 필기 09:30"처럼 종류·시각까지 표시</td></tr><tr><td>일정 입력은 오른쪽 패널, 대학 등록은 전체 폭 페이지</td><td>달력을 보면서 날짜를 고르고, 항목이 많은 대학 폼은 넓게(사용자 선택)</td></tr><tr><td>코드 전에 데스크톱 시안으로 확인</td><td>데스크톱 시안이 없던 상태에서 방향을 먼저 맞추기 위해</td></tr><tr><td>해시 라우팅 + 상대 경로 base('./')</td><td>저장소 이름과 상관없이 GitHub Pages에서 동작, 새로고침 404 없음</td></tr><tr><td>순수 계산 함수 분리(lib)와 단위 테스트</td><td>D-day·겹침·.ics는 경계값 실수가 치명적이라 PRD 완료 기준을 테스트로 고정</td></tr><tr><td>날짜·시각을 문자열과 정수 날짜로 계산</td><td>기기 시간대와 상관없이 서울 기준 같은 결과</td></tr><tr><td>가족 만들기를 DB 함수 하나로</td><td>가족과 첫 구성원이 함께 생겨 "구성원 없는 가족"이 남지 않음</td></tr><tr><td>실시간 반영은 Broadcast 신호</td><td>DB publication을 바꾸지 않아 Link Plan 보호 규칙을 지킴. 신호에는 데이터가 없음</td></tr><tr><td>오프라인은 서비스 워커(앱 화면) + localStorage(데이터)</td><td>의존성 없이 단순하게. 로그아웃하면 보관 데이터 삭제</td></tr><tr><td>테스트 데이터는 is_sample 표시로 구분</td><td>일괄 삭제가 실제 데이터를 절대 건드리지 않게</td></tr><tr><td>화면 확인은 가짜 Supabase로</td><td>운영 DB(Link Plan)에 테스트 데이터를 남기지 않고, 계정 비밀번호 없이 전체 흐름 확인</td></tr><tr><td>Git은 사용자가 직접</td><td>사용자 요청. Claude는 커밋 시점과 메시지만 제안</td></tr></tbody></table></div>
+    </section>
+    <section id="sec-7" class="card">
+      <h2>7. 문제 해결 기록</h2>
+<div class="table-wrap"><table><thead><tr><th>문제</th><th>원인</th><th>해결</th></tr></thead><tbody><tr><td>앱이 tcal_ 테이블을 전혀 읽지 못할 뻔함</td><td>이 Supabase 프로젝트는 새 테이블에 anon·authenticated 권한을 자동으로 주지 않음</td><td>RLS 검증 중 발견. authenticated에만 필요한 권한을 주는 마이그레이션 추가, anon의 TRUNCATE(RLS 우회 가능)도 회수</td></tr><tr><td>운영 DB에서 RLS를 검증해야 함</td><td>테스트 데이터를 남기면 안 됨</td><td>do 블록 안에서 역할을 바꿔 확인하고 마지막에 예외를 일으켜 전부 되돌림</td></tr><tr><td>상세 패널 카드 아래쪽이 잘림</td><td>flex 열 안의 카드가 줄어듦</td><td>패널·페이지 안 요소에 flex-shrink 0</td></tr><tr><td>4개월 보기로 바꾸면 패널이 달력을 가림</td><td>날짜 지정 진입 시 열린 패널이 유지됨</td><td>보기를 바꾸면 패널을 닫고 Esc로도 닫게 함</td></tr><tr><td>시각을 넣기 전부터 "간격 주의" 경고</td><td>시각 없는 일정은 규칙상 주의</td><td>시각 입력 전에는 안내만 표시</td></tr><tr><td>인쇄 칸에서 수험 번호·시각이 잘림</td><td>좁은 칸에서 한 줄 고정</td><td>세로형은 조각 단위로 다음 줄로 넘김</td></tr><tr><td>.ics 알림 순서가 규격과 다름</td><td>VALARM이 일정 속성보다 앞에 있었음</td><td>RFC 5545대로 속성 뒤로 이동, 테스트 추가</td></tr><tr><td>배포 후 빈 화면</td><td>빌드 시 Supabase 변수가 비어 앱이 시작하자마자 멈춤(배포는 초록색)</td><td>Repository variables 안내, 변수가 비면 워크플로가 실패하고 앱은 안내 화면을 보여 주게 함</td></tr><tr><td>실시간 신호 경고</td><td>연결 전 send가 곧 지원이 끊길 REST 우회로 감</td><td>연결된 동안에만 신호 전송</td></tr><tr><td>테스트 실행 환경 제약</td><td>로컬 서버 실행 거부, Playwright에서 require·import 불가</td><td>Playwright 경로 가로채기로 dist 제공, 가짜 백엔드를 실행 함수 파일 하나로 구성</td></tr></tbody></table></div>
+    </section>
+    <section id="sec-8" class="card">
+      <h2>8. 보안/성능 고려사항</h2>
+<h3>보안</h3>
+<ul><li>모든 tcal_ 테이블에 RLS, 같은 가족만 조회·수정. 가족이 아닌 계정과 로그인하지 않은 접근은 거부됨을 검증</li><li>로그인하지 않은 사용자(anon)에게는 테이블·함수 권한을 주지 않음</li><li>함수는 <code>search_path = ''</code>로 고정</li><li>클라이언트에는 공개(publishable) 키만, service_role 키는 어디에도 두지 않음</li><li>Link Plan의 기존 테이블·함수·트리거·Auth 설정은 읽기만 함(CLAUDE.md 규칙)</li><li>수험 번호를 인쇄에서 숨기는 옵션, 로그아웃 시 기기 보관 데이터 삭제</li></ul>
+<h3>성능</h3>
+<ul><li>가족 데이터를 한 번에 불러옴(대학 20곳·일정 100개 이하 가정)</li><li>고른 테마의 글꼴만 불러옴. 프리텐다드는 플래너일 때만 따로 받음</li><li>빌드 파일은 서비스 워커가 보관해 다시 열 때 빠름</li></ul>
+    </section>
+    <section id="sec-9" class="card">
+      <h2>9. 테스트 및 검증</h2>
+<div class="table-wrap"><table><thead><tr><th>구분</th><th>방법</th><th>결과</th></tr></thead><tbody><tr><td>계산 규칙</td><td>Vitest 단위 테스트 54개</td><td>모두 통과</td></tr><tr><td>D-day</td><td>자정 직전·직후(서울), 당일, 지난 일정</td><td>통과</td></tr><tr><td>겹침</td><td>간격 정확히 120분(충분), 119분(주의), 종료=입실(주의), 시각 없음(주의), 설정값 반영</td><td>통과</td></tr><tr><td>.ics</td><td>75바이트 줄 접기(한글 안 쪼갬), CRLF, 이스케이프, 서울 시각·알림, UID 고정, 순서</td><td>통과, 실제 파일도 검사</td></tr><tr><td>달력</td><td>네 달의 주 수·시작 요일이 PRD 표와 일치</td><td>통과</td></tr><tr><td>DB 보안</td><td>실제 계정 3개로 RLS 15항목(되돌림)</td><td>모두 기대대로</td></tr><tr><td>화면 흐름</td><td>Playwright + 가짜 Supabase: 로그인, 일정 입력·수정·삭제, 대학 등록, 테마, 서류, 내보내기, 테스트 데이터</td><td>오류 없음</td></tr><tr><td>화면 크기</td><td>1920×1080, 1440×900, 1280×800, 393×852</td><td>가로 넘침 없음, 6주 1월도 스크롤 없이 표시</td></tr><tr><td>인쇄</td><td>page.pdf로 PDF 생성</td><td>세로 4쪽(A4 세로), 가로 2쪽(A4 가로), 넘침 없음</td></tr><tr><td>배포 경로</td><td>하위 경로(/texam-calendar/) 흉내</td><td>앱·매니페스트·아이콘 정상</td></tr><tr><td>오프라인</td><td>Supabase 요청 차단 후 다시 열기</td><td>보관 데이터 즉시 표시, 안내 막대, 로그아웃 시 삭제</td></tr></tbody></table></div>
+<h3>아직 직접 확인이 필요한 것</h3>
+<ul><li>아이폰 실기기: 안전 영역, 시트 끌어 닫기, 좌우 밀기 손 느낌, .ics 가져오기와 알림, 홈 화면 앱 오프라인</li><li>두 기기 사이 실시간 반영(가짜 백엔드로는 웹소켓 확인 불가)</li><li>실제 종이 인쇄로 세로형·가로형 기본값 결정(PRD F9 완료 기준)</li><li>실제 Link Plan DB에서 테스트 데이터 넣기·삭제</li></ul>
+    </section>
+    <section id="sec-10" class="card">
+      <h2>10. 배포</h2>
+<ul><li>방식: GitHub Actions(<code>.github/workflows/deploy.yml</code>)가 main에 올라올 때 변수 확인 → npm ci → 테스트 → 빌드 → GitHub Pages 배포</li><li>주소: https://poguni.github.io/transfer-exam/</li><li>필요한 설정: 저장소 Settings › Pages Source를 GitHub Actions로, Settings › Secrets and variables › Actions › Variables의 <strong>Repository variables</strong>에 <code>VITE_SUPABASE_URL</code>, <code>VITE_SUPABASE_ANON_KEY</code></li><li>아이폰: Safari에서 열고 공유 › 홈 화면에 추가</li><li>이메일·비밀번호 로그인이라 Supabase Auth의 Site URL·Redirect URL은 바꾸지 않음</li></ul>
+    </section>
+    <section id="sec-11" class="card">
+      <h2>11. 알려진 한계</h2>
+<ul><li>회원가입 화면이 없음: 부모 계정은 Supabase 대시보드(Authentication › Users)나 Link Plan에서 만든 뒤 초대 코드로 참여</li><li>"변경된 일정만" 내보내기의 기준 시각은 기기마다 따로 기록됨</li><li>앱에서 삭제한 일정은 아이폰 캘린더에서 자동으로 지워지지 않음(구독 주소가 필요)</li><li>기기 기본 시각 선택기는 OS 언어에 따라 "오전/오후"로 보일 수 있음(저장 후 확인 문구는 24시간 표기)</li><li>오프라인에서는 보기만 가능하고 저장은 연결된 뒤에만 가능. 끊긴 것을 알리는 안내는 Supabase 재시도 때문에 약 15초 뒤에 나타남</li><li>공휴일(2/9 대체공휴일 등)은 코드 상수라 정부 공고가 바뀌면 직접 고쳐야 함</li><li>Safari는 인쇄 용지 방향 설정을 무시할 수 있어 데스크톱 크롬 인쇄를 기준으로 함</li><li>빌드 결과 JS가 하나의 큰 파일(약 620KB)로 나옴</li></ul>
+    </section>
+    <section id="sec-12" class="card">
+      <h2>12. 향후 개선 아이디어 / 업데이트 계획</h2>
+<h3>다음에 하면 좋을 것</h3>
+<ul><li>실기기 확인 결과 반영(아이폰 안전 영역, 시트 제스처, .ics 알림)</li><li>실제 인쇄 비교 후 인쇄 기본 형식 정하기</li><li>모집요강 발표 후 테스트 데이터 삭제 → 실제 대학 입력</li><li>Playwright 화면 테스트를 파일로 저장해 배포 전 자동 실행(지금은 가짜 백엔드 함수만 있음)</li><li>일정 수정 시 "마지막 확인일" 기록(대학 공지 변경 대응, PRD 12장)</li></ul>
+<h3>여유가 있으면</h3>
+<ul><li>구독용 캘린더 주소(webcal, PRD F8-6): 앱에서 고치면 아이폰 캘린더에 자동 반영, 삭제도 반영</li><li>비밀번호 재설정 링크(로그인 화면) 또는 부모 계정 초대 메일</li><li>화면별 코드 나누기로 첫 로딩 줄이기</li><li>대학별 색을 표에서 바로 바꾸기, 일정 복제(1차·2차 충원 등)</li><li>결과 입력 흐름 개선: 2월 합격 대학 비교와 등록 결정 화면</li></ul>
+<h3>아이디어 수준</h3>
+<ul><li>다크 테마(DESIGN의 "새벽 4시" 시안)를 세 번째 테마로</li><li>시험 전날 저녁 앱 안 알림(PWA 푸시)</li><li>모집요강 PDF 링크·메모를 대학별로 모아 보는 화면</li></ul>
+    </section>
+    <p class="foot">편입 캘린더 · 개발 보고서 v1</p>
+  </main>
+</div>
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('navToggle');
+  const links = document.querySelectorAll('nav.sidebar a');
+  const sections = [...links].map(a => document.querySelector(a.getAttribute('href')));
+  const setActive = (id) => links.forEach(a => {
+    const on = a.getAttribute('href') === '#' + id;
+    a.classList.toggle('active', on);
+    if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+  });
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => { if (entry.isIntersecting) setActive(entry.target.id); });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach((el) => el && observer.observe(el));
+  // 모바일: 목차 접기·펼치기, 항목을 누르면 접는다
+  toggle.addEventListener('click', () => {
+    const open = sidebar.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+  links.forEach(a => a.addEventListener('click', () => {
+    setActive(a.getAttribute('href').slice(1));
+    sidebar.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+  }));
+  if (sections[0]) setActive(sections[0].id);
+</script>
+</body>
+</html>
