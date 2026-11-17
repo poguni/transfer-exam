@@ -55,7 +55,7 @@ export function UnivDetailPage() {
         <button className="icon-btn" onClick={() => nav('/univs')} aria-label="지원 현황으로"><Icon name="back" /></button>
         <span className="ab lg">{u.short_name}</span>
         <div>
-          <h1>{u.name} <span className="hide-m">{u.department}</span></h1>
+          <h1>{u.name} <span className="hide-m">{u.department}</span>{u.is_sample && <span className="pill warn" style={{ marginLeft: 8, verticalAlign: 'middle' }}>테스트</span>}</h1>
           <span className="sub">
             {u.priority ? PRIORITY_LABEL[u.priority] : '우선순위 미정'} · 결과 {RESULT_LABEL[u.result_status]}
             {u.result_status === 'waitlist' && u.waitlist_no ? ` ${u.waitlist_no}번` : ''}

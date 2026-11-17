@@ -90,8 +90,10 @@ export function FamilyProvider({ userId, membership, children }: { userId: strin
     ch.on('broadcast', { event: 'changed' }, () => {
       qc.invalidateQueries({ queryKey: ['family', familyId] });
       qc.invalidateQueries({ queryKey: ['membership', userId] });
-    }).subscribe();
-    channel.current = ch;
+    }).subscribe((status) => {
+      // 연결된 동안에만 신호를 보냄 (연결 전 send는 사라질 예정인 REST 우회로 감)
+      channel.current = status === 'SUBSCRIBED' ? ch : null;
+    });
     return () => {
       channel.current = null;
       supabase.removeChannel(ch);

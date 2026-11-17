@@ -69,7 +69,8 @@ export async function fetchFamilyData(familyId: string): Promise<FamilyData> {
 }
 
 // ---------- 대학 ----------
-export type UniversityInput = Omit<UniversityRow, 'id' | 'family_id' | 'created_at'>;
+/** 대학 입력값. is_sample은 테스트 데이터를 넣을 때만 씀(수정할 때는 빼서 기존 값 유지) */
+export type UniversityInput = Omit<UniversityRow, 'id' | 'family_id' | 'created_at' | 'is_sample'> & { is_sample?: boolean };
 export type DocInput = Pick<DocumentRow, 'doc_type' | 'custom_name' | 'status' | 'submit_method' | 'mail_basis' | 'original_required' | 'memo'> & { id?: string };
 export type ChecklistInput = { id?: string; label: string; checked?: boolean };
 
@@ -147,6 +148,27 @@ export async function saveEvent(familyId: string, id: string | null, input: Even
 
 export async function deleteEvent(id: string): Promise<void> {
   must(await supabase.from('tcal_events').delete().eq('id', id));
+}
+
+// ---------- 테스트(더미) 데이터 ----------
+/** 테스트 대학 묶음을 넣음: 대학(+기본 준비물·서류) 저장 후 일정을 한 번에 추가 */
+export async function insertSampleData(
+  familyId: string,
+  samples: { univ: UniversityInput; docs: DocInput[]; events: Omit<EventInput, 'university_id'>[] }[],
+): Promise<{ universities: number; events: number }> {
+  let events = 0;
+  for (const s of samples) {
+    const uid = await saveUniversity(familyId, null, { ...s.univ, is_sample: true }, s.docs, null);
+    const rows = s.events.map((e) => ({ ...e, university_id: uid, family_id: familyId }));
+    if (rows.length) must(await supabase.from('tcal_events').insert(rows));
+    events += rows.length;
+  }
+  return { universities: samples.length, events };
+}
+
+/** 테스트 데이터만 삭제 (is_sample = true인 대학과, cascade로 그 일정·서류·준비물) */
+export async function deleteSampleData(familyId: string): Promise<void> {
+  must(await supabase.from('tcal_universities').delete().eq('family_id', familyId).eq('is_sample', true));
 }
 
 // ---------- 서류·준비물 ----------

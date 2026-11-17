@@ -112,6 +112,7 @@ export function UnivListPage() {
                   <span className="ab" style={{ width: 44, height: 44, fontSize: 14 }}>{u.short_name}</span>
                   <span style={{ minWidth: 0 }}>
                     <span className="n">{u.name}</span>
+                    {u.is_sample && <span className="pill warn" style={{ marginLeft: 6 }}>테스트</span>}
                     <br />
                     <span className="m">
                       {u.department}
@@ -157,6 +158,7 @@ export function UnivListPage() {
                         <span className="uc">
                           <span className="ab">{u.short_name}</span>
                           <span className="n">{u.name}</span>
+                    {u.is_sample && <span className="pill warn" style={{ marginLeft: 6 }}>테스트</span>}
                         </span>
                       </td>
                       <td>{u.department}</td>

@@ -1,7 +1,8 @@
 import { useState, type ChangeEvent } from 'react';
 import { useFamily } from '../app/state';
 import { copyText, saveFile } from '../lib/browser';
-import { updateFamily } from '../lib/db';
+import { deleteSampleData, insertSampleData, updateFamily } from '../lib/db';
+import { sampleUniversities } from '../lib/sampleData';
 import { signOut } from '../lib/offline';
 import { applyTheme, getSavedTheme, THEMES, type ThemeId } from '../lib/themes';
 import { Icon } from '../ui/Icon';
@@ -137,6 +138,8 @@ export function SettingsPage() {
             <p className="sub" style={{ margin: '8px 0 0' }}>바꾼 알림은 다음에 내보내는 .ics 파일부터 적용됩니다.</p>
           </div>
 
+          <SampleDataCard />
+
           <div className="card">
             <h4>계정 · 앱 정보</h4>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -152,5 +155,62 @@ export function SettingsPage() {
         </div>
       </div>
     </>
+  );
+}
+
+/** 테스트(더미) 데이터 넣기·일괄 삭제 — 모집요강 발표 전 연습용 */
+function SampleDataCard() {
+  const f = useFamily();
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const samples = f.universities.filter((u) => u.is_sample);
+  const sampleIds = new Set(samples.map((u) => u.id));
+  const sampleEvents = f.events.filter((e) => sampleIds.has(e.university_id)).length;
+
+  async function add() {
+    setBusy(true);
+    try {
+      const r = await insertSampleData(f.family.id, sampleUniversities(f.universities.length));
+      await f.refresh();
+      toast(`테스트 대학 ${r.universities}곳, 일정 ${r.events}개를 넣었습니다`);
+    } catch (e) {
+      toast(`넣지 못했습니다: ${(e as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    if (!window.confirm(`테스트 데이터를 모두 삭제할까요?\n테스트 대학 ${samples.length}곳과 그 일정 ${sampleEvents}개, 서류·준비물이 함께 지워집니다.\n직접 등록한 대학은 지워지지 않습니다.`)) return;
+    setBusy(true);
+    try {
+      await deleteSampleData(f.family.id);
+      await f.refresh();
+      toast('테스트 데이터를 모두 삭제했습니다');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="card">
+      <h4>
+        테스트 데이터 <span className="sp" />
+        {samples.length > 0 && <span className="pill warn">사용 중 · 대학 {samples.length}곳 · 일정 {sampleEvents}개</span>}
+      </h4>
+      <p className="sub" style={{ margin: '0 0 12px' }}>
+        모집요강 발표 전에 기능을 연습할 수 있도록 서울·수도권 8개 대학의 <b>가상 일정</b>을 넣습니다(건국·동국·홍익·숭실·세종·광운·인하·아주). 실제 모집요강과 다르며, 겹침 경고 예시(1/10 간격 주의, 1/16 시간 충돌)가 들어 있습니다. 가족 모두에게 보입니다.
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button className="btn sec sm" onClick={add} disabled={busy || samples.length > 0}>
+          테스트 데이터 넣기
+        </button>
+        <button className="btn danger sm" onClick={remove} disabled={busy || samples.length === 0}>
+          <Icon name="trash" size={16} />
+          테스트 데이터 모두 삭제
+        </button>
+      </div>
+      {samples.length > 0 && <p className="sub" style={{ margin: '8px 0 0' }}>실제 대학을 등록하기 전에 [모두 삭제]로 지워 주세요. 직접 등록한 대학은 지워지지 않습니다.</p>}
+    </div>
   );
 }

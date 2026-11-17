@@ -60,6 +60,8 @@ export interface UniversityRow extends University {
   waitlist_no: number | null;
   review_memo: string | null;
   memo: string | null;
+  /** 설정에서 넣은 테스트(더미) 데이터. 일괄 삭제 대상 */
+  is_sample: boolean;
   created_at: string;
 }
 
