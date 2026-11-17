@@ -86,3 +86,22 @@ describe('buildIcs', () => {
     expect(again).toBe(ics);
   });
 });
+
+describe('알림 시각 설정 반영 (PRD F11)', () => {
+  it('설정에서 바꾼 알림 시각을 쓴다', () => {
+    const exam = ev({ id: 'ex9', event_type: 'exam', start_date: '2026-12-24', check_in_time: '09:30' });
+    const text = unfold(buildIcs([{ event: exam, university: univ }], { settings: { ...DEFAULT_SETTINGS, ics_exam_eve: '21:30', ics_exam_before_min: 90 }, now }));
+    expect(text).toContain('TRIGGER;VALUE=DATE-TIME:20261223T123000Z');
+    expect(text).toContain('TRIGGER:-PT90M');
+  });
+});
+
+describe('RFC 5545 순서', () => {
+  it('VALARM은 일정 속성(SUMMARY 등) 뒤에 온다', () => {
+    const exam = ev({ id: 'o1', event_type: 'exam', start_date: '2026-12-24', check_in_time: '09:30' });
+    const text = unfold(buildIcs([{ event: exam, university: univ }], { settings: DEFAULT_SETTINGS, now }));
+    const block = text.slice(text.indexOf('BEGIN:VEVENT'), text.indexOf('END:VEVENT'));
+    expect(block.indexOf('BEGIN:VALARM')).toBeGreaterThan(block.indexOf('DESCRIPTION:건국대학교'));
+    expect(block.indexOf('BEGIN:VALARM')).toBeGreaterThan(block.indexOf('SUMMARY:'));
+  });
+});

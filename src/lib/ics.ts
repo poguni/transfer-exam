@@ -14,7 +14,6 @@ export interface IcsAlarmSettings {
   dueEve: TimeStr;
 }
 
-export const DEFAULT_ALARMS: IcsAlarmSettings = { examEve: '20:00', examBeforeMin: 120, dueEve: '09:00' };
 
 export interface IcsItem {
   event: CalEvent;
@@ -118,21 +117,23 @@ function vevent(item: IcsItem, opts: Required<IcsOptions>): string[] {
   const { event: e, university: u } = item;
   const summary = summaryOf(e, u);
   const out = ['BEGIN:VEVENT', `UID:${e.id}@tcal`, `DTSTAMP:${utcStamp(opts.now)}`];
+  // RFC 5545: 일정 속성을 모두 쓴 뒤에 VALARM을 둠
+  const alarms: string[] = [];
 
   const start = effectiveStart(e);
   const end = effectiveEnd(e, opts.settings.default_exam_min);
   if (isTimed(e) && start != null && end != null) {
     out.push(`DTSTART;TZID=Asia/Seoul:${compactDate(e.start_date)}T${compactTime(start)}`);
     out.push(`DTEND;TZID=Asia/Seoul:${compactDate(e.start_date)}T${compactTime(Math.min(end, 24 * 60 - 1))}`);
-    out.push(...alarm(`TRIGGER;VALUE=DATE-TIME:${seoulToUtcStamp(addDays(e.start_date, -1), opts.alarms.examEve)}`, `내일 ${summary}`));
-    out.push(...alarm(`TRIGGER:-PT${opts.alarms.examBeforeMin}M`, summary));
+    alarms.push(...alarm(`TRIGGER;VALUE=DATE-TIME:${seoulToUtcStamp(addDays(e.start_date, -1), opts.alarms.examEve)}`, `내일 ${summary}`));
+    alarms.push(...alarm(`TRIGGER:-PT${opts.alarms.examBeforeMin}M`, summary));
   } else {
     // 시각이 없거나 시험·면접이 아닌 일정은 종일 일정. 기간이면 시작~마감, 종료일은 다음 날(배타적)
     const last = e.end_date ?? e.start_date;
     out.push(`DTSTART;VALUE=DATE:${compactDate(e.start_date)}`);
     out.push(`DTEND;VALUE=DATE:${compactDate(addDays(last, 1))}`);
     if (isDeadline(e)) {
-      out.push(...alarm(`TRIGGER;VALUE=DATE-TIME:${seoulToUtcStamp(addDays(last, -1), opts.alarms.dueEve)}`, `내일 마감 ${summary}`));
+      alarms.push(...alarm(`TRIGGER;VALUE=DATE-TIME:${seoulToUtcStamp(addDays(last, -1), opts.alarms.dueEve)}`, `내일 마감 ${summary}`));
     }
   }
   out.push(`SUMMARY:${escapeText(summary)}`);
@@ -140,12 +141,17 @@ function vevent(item: IcsItem, opts: Required<IcsOptions>): string[] {
   if (venue) out.push(`LOCATION:${escapeText(venue)}`);
   out.push(`DESCRIPTION:${escapeText(descriptionOf(item))}`);
   if (u.guide_url) out.push(`URL:${u.guide_url}`);
-  out.push('END:VEVENT');
+  out.push(...alarms, 'END:VEVENT');
   return out;
 }
 
+/** 가족 설정의 알림 값 → .ics 알림 설정 */
+export function alarmsFrom(s: Pick<FamilySettings, 'ics_exam_eve' | 'ics_exam_before_min' | 'ics_due_eve'>): IcsAlarmSettings {
+  return { examEve: s.ics_exam_eve, examBeforeMin: s.ics_exam_before_min, dueEve: s.ics_due_eve };
+}
+
 export function buildIcs(items: readonly IcsItem[], options: IcsOptions): string {
-  const opts: Required<IcsOptions> = { alarms: DEFAULT_ALARMS, now: new Date(), ...options };
+  const opts: Required<IcsOptions> = { alarms: alarmsFrom(options.settings), now: new Date(), ...options };
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',

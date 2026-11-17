@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dday, effectiveEnd, effectiveStart, eventsOnDate, recommendedDeparture, upcomingExams } from '../../src/lib/schedule';
+import { dday, docDeadlineOf, effectiveEnd, effectiveStart, eventsOnDate, recommendedDeparture, selectForExport, upcomingExams } from '../../src/lib/schedule';
 import { todaySeoul } from '../../src/lib/date';
 import { ev, univ } from './fixtures';
 
@@ -65,5 +65,36 @@ describe('다가오는 시험 (PRD F6)', () => {
       ev({ id: 'notice', event_type: 'first_result', start_date: '2026-12-22' }),
     ];
     expect(upcomingExams(list, '2026-12-21').map((e) => e.id)).toEqual(['today', 'am', 'pm']);
+  });
+});
+
+describe('서류 마감일 연결', () => {
+  const list = [
+    ev({ id: 'd1', event_type: 'doc_deadline', start_date: '2026-12-10' }),
+    ev({ id: 'd2', event_type: 'doc_deadline', start_date: '2027-01-12' }),
+    ev({ id: 'x', event_type: 'exam', start_date: '2027-01-05' }),
+  ];
+  it('오늘 이후 가장 가까운 마감', () => {
+    expect(docDeadlineOf(list, 'u1', '2026-12-20')?.id).toBe('d2');
+  });
+  it('모두 지났으면 가장 늦은 마감, 없으면 null', () => {
+    expect(docDeadlineOf(list, 'u1', '2027-02-01')?.id).toBe('d2');
+    expect(docDeadlineOf(list, 'other', '2026-12-20')).toBeNull();
+  });
+});
+
+describe('내보내기 범위 (PRD F8)', () => {
+  const list = [
+    { ...ev({ id: 'a', event_type: 'exam', start_date: '2026-12-24' }), updated_at: '2026-12-01T00:00:00Z' },
+    { ...ev({ id: 'b', event_type: 'apply', start_date: '2026-12-01', university_id: 'u2' }), updated_at: '2026-12-15T00:00:00Z' },
+  ];
+  it('전체 / 시험·면접만 / 대학 하나', () => {
+    expect(selectForExport(list, { kind: 'all' })).toHaveLength(2);
+    expect(selectForExport(list, { kind: 'timed' }).map((e) => e.id)).toEqual(['a']);
+    expect(selectForExport(list, { kind: 'univ', universityId: 'u2' }).map((e) => e.id)).toEqual(['b']);
+  });
+  it('변경된 일정만: 마지막 내보내기 이후 수정분, 처음이면 전체', () => {
+    expect(selectForExport(list, { kind: 'changed', since: '2026-12-10T00:00:00Z' }).map((e) => e.id)).toEqual(['b']);
+    expect(selectForExport(list, { kind: 'changed', since: null })).toHaveLength(2);
   });
 });

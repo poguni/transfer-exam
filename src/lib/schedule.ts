@@ -75,6 +75,31 @@ function sortKey(e: Pick<CalEvent, 'check_in_time' | 'start_time' | 'end_time'>)
 }
 
 /**
+ * 대학의 서류 제출 마감일 (PRD 4.5: 서류 마감은 doc_deadline 일정으로 등록하고 서류 목록과 연결).
+ * 오늘 이후 가장 가까운 마감, 모두 지났으면 가장 늦은 마감, 없으면 null.
+ */
+export function docDeadlineOf(events: readonly CalEvent[], universityId: string, today: DateStr): CalEvent | null {
+  const list = events.filter((e) => e.university_id === universityId && e.event_type === 'doc_deadline').sort((a, b) => (dueDate(a) < dueDate(b) ? -1 : 1));
+  return list.find((e) => dueDate(e) >= today) ?? list.at(-1) ?? null;
+}
+
+export type ExportScope = { kind: 'all' } | { kind: 'timed' } | { kind: 'univ'; universityId: string } | { kind: 'changed'; since: string | null };
+
+/** 내보내기 범위 (PRD F8-1, F8-5). "변경된 일정만"은 마지막 내보내기 이후 수정된 일정 */
+export function selectForExport<T extends CalEvent & { updated_at?: string }>(events: readonly T[], scope: ExportScope): T[] {
+  switch (scope.kind) {
+    case 'all':
+      return [...events];
+    case 'timed':
+      return events.filter(isTimed);
+    case 'univ':
+      return events.filter((e) => e.university_id === scope.universityId);
+    case 'changed':
+      return scope.since ? events.filter((e) => (e.updated_at ?? '') > scope.since!) : [...events];
+  }
+}
+
+/**
  * 다가오는 시험·면접 (PRD F6). 오늘 포함, 지난 일정 제외.
  * 날짜순, 같은 날이면 이른 시각 먼저.
  */

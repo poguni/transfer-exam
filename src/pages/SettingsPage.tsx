@@ -32,7 +32,7 @@ export function SettingsPage() {
     }
   }
 
-  const num = (k: keyof typeof st) => ({
+  const num = (k: 'overlap_gap_min' | 'default_exam_min' | 'default_buffer_min' | 'ics_exam_before_min') => ({
     value: st[k],
     min: 0,
     type: 'number',
@@ -109,6 +109,16 @@ export function SettingsPage() {
               <div className="field"><label htmlFor="s3">기본 여유 시간(분)</label><input id="s3" {...num('default_buffer_min')} /></div>
             </div>
             <p className="sub" style={{ margin: '8px 0 0' }}>기본 여유 시간은 새로 등록하는 대학에 적용됩니다.</p>
+          </div>
+
+          <div className="card">
+            <h4>.ics 알림 (가족 공유)</h4>
+            <div className="three">
+              <div className="field"><label htmlFor="s4">시험·면접 전날 알림</label><input id="s4" type="time" value={st.ics_exam_eve} onChange={(e) => e.target.value && setSt({ ...st, ics_exam_eve: e.target.value })} /></div>
+              <div className="field"><label htmlFor="s5">입실 몇 분 전 알림</label><input id="s5" {...num('ics_exam_before_min')} /></div>
+              <div className="field"><label htmlFor="s6">마감 전날 알림</label><input id="s6" type="time" value={st.ics_due_eve} onChange={(e) => e.target.value && setSt({ ...st, ics_due_eve: e.target.value })} /></div>
+            </div>
+            <p className="sub" style={{ margin: '8px 0 0' }}>바꾼 알림은 다음에 내보내는 .ics 파일부터 적용됩니다.</p>
           </div>
 
           <div className="card">

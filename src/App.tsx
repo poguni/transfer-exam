@@ -12,7 +12,9 @@ import { UnivDetailPage } from './pages/UnivDetailPage';
 import { UnivFormPage } from './pages/UnivFormPage';
 import { OverlapPage } from './pages/OverlapPage';
 import { SettingsPage } from './pages/SettingsPage';
-import { ComingSoonPage } from './pages/ComingSoonPage';
+import { DocsPage } from './pages/DocsPage';
+import { ExportPage } from './pages/ExportPage';
+import { PrintPage } from './pages/PrintPage';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: true } },
@@ -103,9 +105,9 @@ function Shell() {
           <Route path="/univs/:id/edit" element={<UnivFormPage />} />
           <Route path="/overlap" element={<OverlapPage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/docs" element={<ComingSoonPage title="서류·준비물" />} />
-          <Route path="/export" element={<ComingSoonPage title="캘린더 내보내기(.ics)" />} />
-          <Route path="/print" element={<ComingSoonPage title="A4 인쇄" />} />
+          <Route path="/docs" element={<DocsPage />} />
+          <Route path="/export" element={<ExportPage />} />
+          <Route path="/print" element={<PrintPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

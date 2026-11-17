@@ -120,6 +120,8 @@ export interface CalEvent {
 export interface EventRow extends CalEvent {
   family_id: string;
   map_url: string | null;
+  /** DB가 채움(수정 시각). "변경된 일정만 내보내기"에 씀 */
+  updated_at?: string;
 }
 
 /** tcal_families.settings */
@@ -127,10 +129,17 @@ export interface FamilySettings {
   overlap_gap_min: number;
   default_exam_min: number;
   default_buffer_min: number;
+  /** .ics 알림 (PRD F8-2, F11): 시험·면접 전날 시각, 시작 몇 분 전, 마감 전날 시각 */
+  ics_exam_eve: TimeStr;
+  ics_exam_before_min: number;
+  ics_due_eve: TimeStr;
 }
 
 export const DEFAULT_SETTINGS: FamilySettings = {
   overlap_gap_min: 120,
   default_exam_min: 120,
   default_buffer_min: 30,
+  ics_exam_eve: '20:00',
+  ics_exam_before_min: 120,
+  ics_due_eve: '09:00',
 };
