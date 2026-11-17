@@ -2,6 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { applyTheme, getSavedTheme } from './lib/themes';
 import { App } from './App';
+import { FullMessage } from './app/state';
+import { missingEnv } from './lib/supabase';
 import './styles/index.css';
 
 applyTheme(getSavedTheme());
@@ -17,6 +19,13 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    {missingEnv ? (
+      <FullMessage
+        title="앱 설정이 빠져 있습니다"
+        body="배포할 때 Supabase 주소·키(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)가 들어가지 않았습니다. GitHub 저장소 Settings › Secrets and variables › Actions › Variables의 Repository variables에 두 값을 넣고 다시 배포해 주세요."
+      />
+    ) : (
+      <App />
+    )}
   </StrictMode>,
 );
