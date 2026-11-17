@@ -55,16 +55,16 @@ export function UnivDetailPage() {
         <button className="icon-btn" onClick={() => nav('/univs')} aria-label="지원 현황으로"><Icon name="back" /></button>
         <span className="ab lg">{u.short_name}</span>
         <div>
-          <h1>{u.name} {u.department}</h1>
+          <h1>{u.name} <span className="hide-m">{u.department}</span></h1>
           <span className="sub">
             {u.priority ? PRIORITY_LABEL[u.priority] : '우선순위 미정'} · 결과 {RESULT_LABEL[u.result_status]}
             {u.result_status === 'waitlist' && u.waitlist_no ? ` ${u.waitlist_no}번` : ''}
           </span>
         </div>
         <span className="sp" />
-        <Link className="btn ghost" to={`/univs/${u.id}/edit`}><Icon name="edit" size={18} />정보 수정</Link>
+        <Link className="btn ghost" to={`/univs/${u.id}/edit`} aria-label="정보 수정"><Icon name="edit" size={18} /><span className="bl">정보 수정</span></Link>
         <Link className="btn pri" to={`/?add=1&u=${u.id}&d=${evs.find((e) => e.start_date >= f.today)?.start_date ?? (f.today < '2026-11-01' ? '2026-11-01' : f.today > '2027-02-28' ? '2027-02-28' : f.today)}`}>
-          <Icon name="plus" size={18} />일정 추가
+          <Icon name="plus" size={18} /><span className="bl">일정 추가</span>
         </Link>
       </header>
       <div className="page" style={{ ['--u' as string]: u.color }}>

@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import './themes.css';
 @import './app.css';
+@import './mobile.css';
 
 /* Tailwind 유틸리티를 디자인 토큰에 연결합니다. 테마가 바뀌어도 클래스는 그대로입니다 (DESIGN 11장). */
 @theme inline {

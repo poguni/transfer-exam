@@ -1,0 +1,94 @@
+/* 아이폰 등 1024px 미만 화면 (DESIGN 5장: 아이폰 15 Pro 393×852 기준) */
+
+.m-only, .tabbar, .m-scrim, .m-sheet, .m-months { display: none; }
+
+@media (max-width: 1023px) {
+  .d-only { display: none !important; }
+  .m-only { display: revert; }
+
+  /* 틀: 왼쪽 메뉴 → 하단 탭 막대, 안전 영역 */
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .nav { display: none; }
+  .main { padding-top: env(safe-area-inset-top); padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
+  .tabbar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--surface); border-top: 1px solid var(--line); padding: 6px 8px env(safe-area-inset-bottom); }
+  .tabbar a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; border-radius: var(--r); color: var(--muted); font: 600 11px/1.2 var(--font); text-decoration: none; }
+  .tabbar a[aria-current='page'] { color: var(--accent); }
+  .tabbar a:active { background: var(--surface-2); }
+  .toast { bottom: calc(72px + env(safe-area-inset-bottom)); max-width: calc(100vw - 32px); }
+
+  /* 앱바 52px */
+  .topbar { flex-wrap: nowrap; min-height: 52px; padding: 4px 12px 8px 16px; gap: 6px; border-bottom: 0; }
+  .topbar > div { min-width: 0; }
+  .topbar h1 { font-size: 20px; overflow: hidden; text-overflow: ellipsis; }
+  .topbar .sub, .topbar .search, .hide-m, .topbar .bl { display: none; }
+  .topbar .btn { min-height: 40px; padding: 0 10px; font-size: 13px; }
+  .topbar .ab.lg { width: 40px; height: 40px; font-size: 13px; }
+  .icon-btn { width: 44px; height: 44px; }
+  .icon-btn.add { background: var(--accent); color: var(--accent-ink); width: 40px; height: 40px; margin-left: 4px; }
+  [data-theme='planner'] .icon-btn.add { border-radius: 50%; }
+  .page { padding: 4px 12px 24px; gap: 12px; }
+
+  /* 달력: 한 달이 스크롤 없이 (5주 78px · 6주 66px) */
+  .calwrap { display: block; flex: 1; overflow-y: auto; }
+  .calmain { padding: 0 12px 12px; gap: 6px; min-height: auto; }
+  .ddays { grid-template-columns: minmax(0, 1fr); }
+  .dd { padding: 10px 14px; }
+  .dd .n { font-size: 28px; min-width: 64px; }
+  .alert { padding: 6px 12px; }
+  .m-months { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; margin: 2px 0; border-radius: var(--r); background: var(--surface-2); }
+  .m-months button { border: 0; background: transparent; color: var(--muted); font: 600 14px/1 var(--font); min-height: 36px; border-radius: calc(var(--r) - 3px); cursor: pointer; }
+  .m-months button[aria-selected='true'] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+  .months { display: block; flex: none; }
+  .month { min-height: auto; }
+  .mhead { margin: 0 2px 4px; }
+  .dow { gap: var(--cal-gap); }
+  .dow div { text-align: center; padding: 2px 0 4px; }
+  [data-theme='planner'] { --cal-gap: 3px; }
+  .grid { flex: none; grid-template-rows: repeat(var(--weeks), var(--cell-h)); }
+  .cell { padding: 2px; gap: 1px; }
+  .cell .d { font-size: 12px; width: 20px; height: 20px; line-height: 20px; margin-left: 1px; }
+  [data-theme='planner'] .cell { border-radius: 10px; }
+  .dl { gap: 2px; }
+  .hn { font-size: 9px; }
+  .cell .wi { top: 3px; right: 3px; }
+  .cell .wi svg { width: 14px; height: 14px; }
+  .chip { height: 15px; padding: 0 3px; gap: 1px; font-size: 11px; }
+  .chip .s { font-size: 8px; }
+  .more { font-size: 10px; padding-left: 3px; }
+  .legend { font-size: 11px; gap: 4px 12px; }
+  .slide-l { animation: tcal-slide-l 0.16s ease-out; }
+  .slide-r { animation: tcal-slide-r 0.16s ease-out; }
+
+  /* 바텀 시트 (최대 80%), 일정 입력은 전체 화면 */
+  .m-scrim { display: block; position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, 0.35); opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+  .m-scrim.on { opacity: 1; pointer-events: auto; }
+  .m-sheet { display: flex; flex-direction: column; position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; max-height: 80dvh; background: var(--bg); border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.14); padding-bottom: env(safe-area-inset-bottom); transform: translateY(105%); transition: transform 0.22s ease-out; visibility: hidden; }
+  .m-sheet.on { transform: none; visibility: visible; }
+  .m-sheet.full { top: 0; max-height: none; border-radius: 0; padding-top: env(safe-area-inset-top); }
+  .grab-area { flex: none; padding: 8px 0 4px; touch-action: none; cursor: grab; }
+  .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto; }
+  .m-sheet .ph { min-height: 0; padding: 4px 12px 8px 16px; border-bottom: 0; }
+  .m-sheet .ph h2 { font-size: 18px; }
+  .m-sheet .ph h2:focus { outline: none; }
+  .m-sheet .pb { padding: 0 12px 12px; gap: 10px; }
+  .m-sheet .pf { padding: 8px 12px; }
+  .card { padding: 14px; }
+  .actions .btn { font-size: 12.5px; }
+
+  /* 여러 열 → 한 열 */
+  .cols.c3, .cols.c2, .cols.c2e { grid-template-columns: minmax(0, 1fr); }
+  .cols.c3 > :last-child { grid-column: auto; }
+  .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .tile { padding: 10px; }
+  .tile .k { font-size: 11px; }
+  .tile .v { font-size: 18px; }
+  .ovgrid { grid-template-columns: minmax(0, 1fr); }
+  .ovpair { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .three { grid-template-columns: minmax(0, 1fr); }
+  .fbody { grid-template-columns: minmax(0, 1fr); padding: 2px 14px 16px; }
+  .doc-row { grid-template-columns: minmax(0, 1fr) 140px; }
+  .row { grid-template-columns: 72px minmax(0, 1fr) auto; }
+}
+
+@keyframes tcal-slide-l { from { transform: translateX(24px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+@keyframes tcal-slide-r { from { transform: translateX(-24px); opacity: 0.4; } to { transform: none; opacity: 1; } }

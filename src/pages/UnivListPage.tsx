@@ -88,10 +88,10 @@ export function UnivListPage() {
       <div className="page">
         <div className="tiles">
           <Tile k="지원 대학" v={f.universities.length} unit="곳" />
-          <Tile k="전형료 합계" v={fee.toLocaleString('ko-KR')} unit="원" />
-          <Tile k="전형료 결제" v={`${paid.length}/${f.universities.length}`} unit={unpaidFee ? `미결제 ${unpaidFee.toLocaleString('ko-KR')}원` : ''} />
+          <Tile k="전형료 합계" v={fee.toLocaleString('ko-KR')} unit="원" mv={`${(fee / 10000).toFixed(1)}만`} />
+          <Tile k="전형료 결제" v={`${paid.length}/${f.universities.length}`} unit={unpaidFee ? `미결제 ${unpaidFee.toLocaleString('ko-KR')}원` : ''} d />
           <Tile k="수험표 출력" v={`${printed}/${f.universities.length}`} />
-          <Tile k="남은 시험·면접" v={left} unit="건" />
+          <Tile k="남은 시험·면접" v={left} unit="건" d />
         </div>
         {f.universities.length === 0 ? (
           <div className="card empty">
@@ -101,7 +101,30 @@ export function UnivListPage() {
             </div>
           </div>
         ) : (
-          <div className="tblwrap">
+          <>
+          {/* 모바일: 카드 목록 (DESIGN 6장 "목록 항목") */}
+          <div className="card m-only" style={{ padding: '4px 12px' }}>
+            {list.map((u) => {
+              const nx = nextOf.get(u.id);
+              const nd = nx ? (nx.start_date >= f.today ? nx.start_date : dueDate(nx)) : null;
+              return (
+                <Link key={u.id} className="li" to={`/univs/${u.id}`} style={{ ['--u' as string]: u.color, gridTemplateColumns: '44px minmax(0,1fr) auto' }}>
+                  <span className="ab" style={{ width: 44, height: 44, fontSize: 14 }}>{u.short_name}</span>
+                  <span style={{ minWidth: 0 }}>
+                    <span className="n">{u.name}</span>
+                    <br />
+                    <span className="m">
+                      {u.department}
+                      {u.priority && ` · ${PRIORITY_LABEL[u.priority]}`}
+                      {nx && nd && ` · ${eventName(nx)} ${formatMD(nd)}`}
+                    </span>
+                  </span>
+                  <span className={'pill' + (u.fee_paid ? ' ok' : ' bad')}>{u.fee_paid ? '결제 완료' : '미결제'}</span>
+                </Link>
+              );
+            })}
+          </div>
+          <div className="tblwrap d-only">
             <table className="tbl">
               <thead>
                 <tr>
@@ -160,19 +183,22 @@ export function UnivListPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </>
   );
 }
 
-function Tile({ k, v, unit }: { k: string; v: string | number; unit?: string }) {
+/** 요약 타일. d = 데스크톱에서만, mv = 모바일에서 짧게 보일 값 (모바일은 3칸, DESIGN 6장) */
+function Tile({ k, v, unit, d, mv }: { k: string; v: string | number; unit?: string; d?: boolean; mv?: string }) {
   return (
-    <div className="tile">
+    <div className={'tile' + (d ? ' d-only' : '')}>
       <div className="k">{k}</div>
       <div className="v">
-        {v}
-        {unit && <small>{unit}</small>}
+        <span className={mv ? 'd-only' : undefined}>{v}</span>
+        {mv && <span className="m-only">{mv}</span>}
+        {unit && <small className={mv ? 'd-only' : undefined}>{unit}</small>}
       </div>
     </div>
   );

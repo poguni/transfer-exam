@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type TouchEvent } from 'react';
+import { useMobile } from '../ui/useMobile';
+import { Sheet } from '../ui/Sheet';
 import { Link, useSearchParams } from 'react-router';
 import { useFamily } from '../app/state';
 import { HOLIDAYS, MONTHS, PRIORITY_LABEL } from '../lib/constants';
@@ -37,7 +39,8 @@ export function CalendarPage() {
   const editing = editId ? (f.events.find((e) => e.id === editId) ?? null) : null;
   const formOpen = adding || !!editing;
 
-  const [mode, setModeState] = useState<ViewMode>(() => {
+  const mobile = useMobile();
+  const [savedMode, setModeState] = useState<ViewMode>(() => {
     try {
       const v = localStorage.getItem(KEY_MODE);
       return v === '2' || v === '4' ? v : '1';
@@ -45,7 +48,15 @@ export function CalendarPage() {
       return '1';
     }
   });
-  const [m, setM] = useState(() => monthIndexOf(sel));
+  // 모바일은 한 달씩만 (PRD F4-1)
+  const mode: ViewMode = mobile ? '1' : savedMode;
+  const [m, setMState] = useState(() => monthIndexOf(sel));
+  const [slide, setSlide] = useState<'' | 'l' | 'r'>('');
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  function setM(next: number) {
+    setSlide(next > m ? 'l' : next < m ? 'r' : '');
+    setMState(next);
+  }
   const [filter, setFilter] = useState<Filter>('all');
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [showUnivFilter, setShowUnivFilter] = useState(false);
@@ -71,8 +82,26 @@ export function CalendarPage() {
   // 다른 화면에서 날짜를 지정해 들어오면 그 달로 이동
   useEffect(() => {
     const i = monthIndexOf(sel);
-    setM((cur) => (mode === '2' && (cur === i || cur + 1 === i) ? cur : Math.min(i, mode === '2' ? 2 : 3)));
+    setMState((cur) => (mode === '2' && (cur === i || cur + 1 === i) ? cur : Math.min(i, mode === '2' ? 2 : 3)));
   }, [sel, mode]);
+
+  // 모바일: 좌우 밀기로 달 이동 (DESIGN 9장)
+  const swipe = mobile
+    ? {
+        onTouchStart: (e: TouchEvent<HTMLDivElement>) => (touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }),
+        onTouchEnd: (e: TouchEvent<HTMLDivElement>) => {
+          const s = touch.current;
+          touch.current = null;
+          if (!s) return;
+          const dx = e.changedTouches[0].clientX - s.x;
+          const dy = e.changedTouches[0].clientY - s.y;
+          if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+          if (dx < 0 && m < 3) setM(m + 1);
+          if (dx > 0 && m > 0) setM(m - 1);
+        },
+      }
+    : {};
+  const closeForm = () => setQuery({ add: null, edit: null, u: null });
 
   function setQuery(next: Record<string, string | null>) {
     const p = new URLSearchParams(params);
@@ -97,8 +126,37 @@ export function CalendarPage() {
   const bad = [...f.overlapLevel.entries()].filter(([d, lv]) => d >= f.today && lv !== 'info').map(([d]) => d).sort();
   const nConflict = bad.filter((d) => f.overlapLevel.get(d) === 'conflict').length;
 
+  const panelContent = formOpen ? (
+    <EventForm
+      key={editId ?? 'new'}
+      editing={editing}
+      date={sel}
+      onDateChange={(d) => setQuery({ d })}
+      initialUniv={params.get('u')}
+      onClose={closeForm}
+    />
+  ) : (
+    <DayPanel
+      date={sel}
+      closable={overlay || mobile}
+      onClose={() => setOpen(false)}
+      onAdd={() => setQuery({ add: '1', edit: null })}
+      onEdit={(id) => setQuery({ edit: id, add: null })}
+    />
+  );
+
   return (
     <>
+      {mobile ? (
+        <header className="topbar m-appbar">
+          <h1>편입 캘린더</h1>
+          <span className="sp" />
+          <Link className="icon-btn" to="/print" aria-label="인쇄·내보내기"><Icon name="print" size={22} /></Link>
+          <button className="icon-btn add" aria-label="일정 추가" onClick={() => setQuery({ add: '1', edit: null, d: sel })}>
+            <Icon name="plus" size={24} />
+          </button>
+        </header>
+      ) : (
       <header className="topbar">
         {mode !== '4' && (
           <>
@@ -174,9 +232,10 @@ export function CalendarPage() {
           일정 추가
         </button>
       </header>
+      )}
 
       <div className={'calwrap' + (overlay ? ` ov m${mode}` : '') + (open ? ' open' : '')}>
-        <div className="calmain">
+        <div className="calmain" {...swipe}>
           <div className="ddays">
             {up.length === 0 && <div className="dd empty">다가오는 시험·면접이 없습니다. 일정을 추가하면 D-day가 여기에 보입니다.</div>}
             {up.slice(0, 6).map((e) => {
@@ -206,7 +265,16 @@ export function CalendarPage() {
               목록 보기 ›
             </Link>
           )}
-          <div className={`months m${mode}`}>
+          {mobile && (
+            <div className="m-months" role="tablist" aria-label="월 선택">
+              {MONTHS.map(([, mm], i) => (
+                <button key={mm} role="tab" aria-selected={m === i} onClick={() => setM(i)}>
+                  {mm}월
+                </button>
+              ))}
+            </div>
+          )}
+          <div key={mobile ? m : 'd'} className={`months m${mode}` + (mobile && slide ? ` slide-${slide}` : '')}>
             {shown.map((i) => (
               <MonthGrid key={i} year={MONTHS[i][0]} month={MONTHS[i][1]} mode={mode} filter={filter} hidden={hidden} selected={sel} onSelect={select} />
             ))}
@@ -220,28 +288,25 @@ export function CalendarPage() {
             <span>⚠ 빨강 충돌 · 주황 간격 주의</span>
           </div>
         </div>
-        <div className="scrim" onClick={() => setOpen(false)} />
-        <aside className="panel" aria-label="상세 패널">
-          {formOpen ? (
-            <EventForm
-              key={editId ?? 'new'}
-              editing={editing}
-              date={sel}
-              onDateChange={(d) => setQuery({ d })}
-              initialUniv={params.get('u')}
-              onClose={() => setQuery({ add: null, edit: null, u: null })}
-            />
-          ) : (
-            <DayPanel
-              date={sel}
-              closable={overlay}
-              onClose={() => setOpen(false)}
-              onAdd={() => setQuery({ add: '1', edit: null })}
-              onEdit={(id) => setQuery({ edit: id, add: null })}
-            />
-          )}
-        </aside>
+        {!mobile && (
+          <>
+            <div className="scrim" onClick={() => setOpen(false)} />
+            <aside className="panel" aria-label="상세 패널">
+              {panelContent}
+            </aside>
+          </>
+        )}
       </div>
+      {mobile && (
+        <Sheet
+          open={formOpen || open}
+          full={formOpen}
+          label={formOpen ? '일정 입력' : `${formatMD(sel)} 일정`}
+          onClose={formOpen ? closeForm : () => setOpen(false)}
+        >
+          {panelContent}
+        </Sheet>
+      )}
     </>
   );
 }
@@ -255,7 +320,7 @@ function DayPanel({ date, closable, onClose, onAdd, onEdit }: { date: DateStr; c
     <>
       <div className="ph">
         <div>
-          <h2>
+          <h2 tabIndex={-1}>
             {formatMD(date)}
             {HOLIDAYS[date] && ` · ${HOLIDAYS[date]}`}
           </h2>

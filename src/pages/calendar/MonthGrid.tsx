@@ -5,6 +5,7 @@ import { chipText } from '../../lib/labels';
 import { eventsOnDate, isDeadline, isTimed } from '../../lib/schedule';
 import type { DateStr, EventRow } from '../../lib/types';
 import { Icon } from '../../ui/Icon';
+import { useMobile } from '../../ui/useMobile';
 
 export type ViewMode = '1' | '2' | '4';
 export type Filter = 'all' | 'timed' | 'due';
@@ -31,7 +32,9 @@ export function MonthGrid({ year, month, mode, filter, hidden, selected, onSelec
   const visible = f.events.filter((e) => !hidden.has(e.university_id));
   const inMonth = visible.filter((e) => e.start_date.startsWith(`${year}-${String(month).padStart(2, '0')}`));
   const sum = `시험·면접 ${inMonth.filter(isTimed).length} · 마감 ${inMonth.filter(isDeadline).length} · 발표 ${inMonth.filter((e) => EVENT_TYPES[e.event_type].symbol === '○').length}`;
-  const limit = mode === '1' ? 4 : mode === '2' ? 3 : 2;
+  const mobile = useMobile();
+  // 칸 하나에 칩 최대 개수 (모바일은 DESIGN 4.2대로 3개, 공휴일 칸은 아래에서 1개 줄임)
+  const limit = mobile ? 3 : mode === '1' ? 4 : mode === '2' ? 3 : 2;
 
   return (
     <section className="month" aria-label={`${year}년 ${month}월`}>
@@ -46,7 +49,7 @@ export function MonthGrid({ year, month, mode, filter, hidden, selected, onSelec
           <div key={d}>{d}</div>
         ))}
       </div>
-      <div className="grid" style={{ ['--weeks' as string]: weeks }}>
+      <div className="grid" style={{ ['--weeks' as string]: weeks, ['--cell-h' as string]: weeks === 6 ? '66px' : '78px' }}>
         {cells.map((date, i) => {
           if (!date) return <div key={i} className="cell out" aria-hidden="true" />;
           const all = eventsOnDate(visible, date);

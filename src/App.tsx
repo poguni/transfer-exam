@@ -1,4 +1,5 @@
-import { HashRouter, NavLink, Navigate, Route, Routes } from 'react-router';
+import { HashRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router';
+import { MorePage } from './pages/MorePage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FamilyProvider, FullMessage, useFamily, useMembership, useSession } from './app/state';
 import { ToastProvider } from './ui/toast';
@@ -94,6 +95,7 @@ function Shell() {
       </nav>
       <main className="main">
         <Routes>
+          <Route path="/more" element={<MorePage />} />
           <Route path="/" element={<CalendarPage />} />
           <Route path="/univs" element={<UnivListPage />} />
           <Route path="/univs/new" element={<UnivFormPage />} />
@@ -107,6 +109,28 @@ function Shell() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <TabBar />
     </div>
+  );
+}
+
+/** 모바일 하단 탭 막대 (DESIGN 5장, 6장): 달력 · 대학 · 서류 · 더보기 */
+function TabBar() {
+  const { pathname } = useLocation();
+  const tabs: { to: string; label: string; icon: IconName; on: boolean }[] = [
+    { to: '/', label: '달력', icon: 'cal', on: pathname === '/' },
+    { to: '/univs', label: '대학', icon: 'uni', on: pathname.startsWith('/univs') },
+    { to: '/docs', label: '서류', icon: 'doc', on: pathname.startsWith('/docs') },
+    { to: '/more', label: '더보기', icon: 'more', on: ['/more', '/settings', '/overlap', '/export', '/print'].some((p) => pathname.startsWith(p)) },
+  ];
+  return (
+    <nav className="tabbar" aria-label="주 메뉴">
+      {tabs.map((t) => (
+        <Link key={t.to} to={t.to} aria-current={t.on ? 'page' : undefined}>
+          <Icon name={t.icon} size={24} />
+          {t.label}
+        </Link>
+      ))}
+    </nav>
   );
 }

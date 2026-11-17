@@ -17,7 +17,9 @@ const PATHS = {
   filter: '<path d="M4 5h16l-6 8v6l-4-2v-4z"/>',
   sortd: '<path d="M7 10l5 5 5-5"/>',
   sortu: '<path d="M7 14l5-5 5 5"/>',
-  logout: '<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>',
+  more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+  chev: '<path d="M9 5l7 7-7 7"/>',
+  logout:'<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>',
 } as const;
 
 export type IconName = keyof typeof PATHS;

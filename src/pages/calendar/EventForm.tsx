@@ -136,7 +136,7 @@ export function EventForm({ editing, date, onDateChange, initialUniv, onClose }:
       <div className="ph">
         <button type="button" className="icon-btn" onClick={onClose} aria-label="취소"><Icon name="back" /></button>
         <div>
-          <h2>{editing ? '일정 수정' : '일정 추가'}</h2>
+          <h2 tabIndex={-1}>{editing ? '일정 수정' : '일정 추가'}</h2>
           <div className="sub">달력에서 날짜를 누르면 날짜가 바뀝니다</div>
         </div>
         <span className="sp" />
@@ -264,6 +264,13 @@ export function EventForm({ editing, date, onDateChange, initialUniv, onClose }:
             const ou = f.univ.get(other.university_id);
             const cls = o.level === 'conflict' ? ' d' : o.level === 'info' ? ' ok' : '';
             const lead = o.level === 'conflict' ? '시간 충돌' : o.level === 'warn' ? '간격 주의' : '겹치지 않음';
+            // 아직 시각을 넣지 않았으면 경고 대신 안내만 (저장할 때 시각이 없으면 그때는 주의로 표시됨)
+            if (!input.check_in_time && !input.start_time)
+              return (
+                <div key={other.id} className="warnbox ok">
+                  같은 날 {ou?.short_name} {eventName(other)}(입실 {hhmm(other.check_in_time) ?? hhmm(other.start_time) ?? '미정'})이 있습니다. 시각을 넣으면 겹침을 검사합니다.
+                </div>
+              );
             return (
               <div key={other.id} className={'warnbox' + cls}>
                 {o.level !== 'info' && <Icon name="warn" size={18} />}

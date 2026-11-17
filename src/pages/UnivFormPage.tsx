@@ -332,8 +332,8 @@ export function UnivFormPage() {
         <h1>{editing ? `${editing.short_name} 정보 수정` : '대학 등록'}</h1>
         <span className="sub">필수: 대학 이름 · 약칭 · 학과. 나머지는 정보가 나오는 대로 채웁니다.</span>
         <span className="sp" />
-        {editing && <button className="btn danger" onClick={remove} disabled={busy}><Icon name="trash" size={18} />대학 삭제</button>}
-        <button className="btn sec" onClick={() => nav(-1)}>취소</button>
+        {editing && <button className="btn danger hide-m" onClick={remove} disabled={busy}><Icon name="trash" size={18} />대학 삭제</button>}
+        <button className="btn sec hide-m" onClick={() => nav(-1)}>취소</button>
         <button className="btn pri" onClick={() => submit()} disabled={busy}>{busy ? '저장 중…' : '저장'}</button>
       </header>
       <div className="page">
