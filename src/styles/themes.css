@@ -1,0 +1,74 @@
+/* 디자인 토큰 (DESIGN.md 3장). 컴포넌트는 이 변수만 참조합니다. */
+
+[data-theme='wongoji'] {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --surface-2: #efece4;
+  --text: #1c1b19;
+  --muted: #5f5b53;
+  --line: #ddd8cc;
+  --accent: #2b59c3;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3eaf8;
+  --sun: #c62828;
+  --sat: #1f57c3;
+  --danger: #c62828;
+  --danger-soft: #fbe4e2;
+  --warn: #a14a00;
+  --warn-soft: #fbebd9;
+  --today: var(--accent);
+
+  --r-sm: 4px;
+  --r: 10px;
+  --r-lg: 16px;
+  --chip-r: 4px;
+  --chip-w: 600;
+  --shadow: 0 1px 2px rgba(28, 27, 25, 0.06), 0 0 0 1px var(--line);
+  --pop-shadow: -12px 0 32px rgba(28, 27, 25, 0.14);
+  --cal-gap: 0px;
+  --cell-r: 0px;
+
+  --font: 'IBM Plex Sans KR', -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  --font-display: 'IBM Plex Sans KR', -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  --font-num: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-num-sm: 'IBM Plex Mono', ui-monospace, monospace;
+  --display-w: 700;
+  --num-w: 600;
+}
+
+[data-theme='planner'] {
+  --bg: #f3f0fa;
+  --surface: #ffffff;
+  --surface-2: #e9e3f7;
+  --text: #2a2340;
+  --muted: #625a7a;
+  --line: #dcd4ee;
+  --accent: #c93f4a;
+  --accent-ink: #ffffff;
+  --accent-soft: #fbe3e4;
+  --sun: #c93f4a;
+  --sat: #4f46e5;
+  --danger: #c0262d;
+  --danger-soft: #fce1e2;
+  --warn: #9a4a00;
+  --warn-soft: #fdebd6;
+  --today: var(--accent);
+
+  --r-sm: 10px;
+  --r: 18px;
+  --r-lg: 26px;
+  --chip-r: 999px;
+  --chip-w: 700;
+  --shadow: 0 2px 0 var(--line), 0 0 0 1px var(--line);
+  --pop-shadow: -14px 0 36px rgba(42, 35, 64, 0.18);
+  --cal-gap: 4px;
+  --cell-r: 12px;
+
+  --font: 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  --font-display: 'Gowun Dodum', 'Pretendard Variable', -apple-system, sans-serif;
+  --font-num: 'Gowun Dodum', 'Pretendard Variable', -apple-system, sans-serif;
+  --font-num-sm: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  --display-w: 400;
+  --num-w: 400;
+  font-synthesis: none;
+}

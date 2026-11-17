@@ -1,0 +1,62 @@
+@import 'tailwindcss';
+@import './themes.css';
+
+/* Tailwind 유틸리티를 디자인 토큰에 연결합니다. 테마가 바뀌어도 클래스는 그대로입니다 (DESIGN 11장). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-sun: var(--sun);
+  --color-sat: var(--sat);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+
+  --font-body: var(--font);
+  --font-display: var(--font-display);
+  --font-num: var(--font-num);
+  --font-num-sm: var(--font-num-sm);
+
+  --radius-sm: var(--r-sm);
+  --radius: var(--r);
+  --radius-lg: var(--r-lg);
+  --radius-chip: var(--chip-r);
+  --shadow-card: var(--shadow);
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 var(--font);
+    word-break: keep-all;
+    /* 테마 전환: 색만 150ms (DESIGN 9장) */
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}
